@@ -1,0 +1,26 @@
+/* =====================================================================================
+ *
+ *
+ * All definitions related to login div,
+ *
+ *
+ */
+
+div#login {
+    width: 390px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+div#login fieldset {
+    padding: 10px;
+    background-color: #dbdadc;
+    border-right: 3px solid black;
+    border-bottom: 3px solid black;
+}
+
+div#login input.login,
+div#login input.password
+{
+	width: 110px;
+}

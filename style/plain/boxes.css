@@ -1,0 +1,36 @@
+/* =====================================================================================
+ *
+ *
+ * All definitions related to various boxes
+ *
+ */
+
+.Box-A {
+    background: url("box-a-body-r.gif") no-repeat scroll right bottom transparent;
+    /* font-size: 100%; */
+    margin-bottom: 15px;
+}
+
+
+.Box-A .boxhead {
+    background: url("box-c-head-r.gif") no-repeat scroll right top transparent;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+}
+
+.Box-A .boxhead h2 {
+    background: url("box-c-head-l.gif") no-repeat scroll left top transparent;
+    color: #222222;
+    font: bold 12px tahoma;
+    margin: 0;
+    padding: 9px 8px 9px 10px;
+}
+
+.Box-A .boxbody {
+    background: url("box-a-body-l.gif") no-repeat scroll left bottom transparent;
+    font: 12px arial;
+    margin: 0;
+    padding: 5px 9px;
+}
+
