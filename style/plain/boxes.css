@@ -3,7 +3,7 @@
  *
  * All definitions related to various boxes
  *
- */
+*/
 
 .Box-A {
     background: url("box-a-body-r.gif") no-repeat scroll right bottom transparent;
@@ -34,3 +34,74 @@
     padding: 5px 9px;
 }
 
+/* Generated table from tablestyler.com */
+
+.datagrid table { 
+    border-collapse: collapse; text-align: left; width: 100%; 
+}
+
+.datagrid {
+    font: normal 12px/150% Arial, Helvetica, sans-serif; 
+    background: #fff; 
+    overflow: hidden; 
+    border: 1px solid #FF8E00; 
+    -webkit-border-radius: 3px; 
+    -moz-border-radius: 3px; 
+    border-radius: 3px;
+    width: 100%;
+}
+
+.datagrid table td, .datagrid table th { 
+    padding: 3px 10px; 
+}
+
+.datagrid table thead th {
+    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #FF8E00), color-stop(1, #C26C00) );background:-moz-linear-gradient( center top, #FF8E00 5%, #C26C00 100% );filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF8E00', endColorstr='#C26C00');background-color:#FF8E00; color:#FFFFFF; font-size: 15px; font-weight: bold; 
+} 
+
+.datagrid table tbody td { 
+    color: #7F4614; border-left: 1px solid #D9CFB8;font-size: 12px;font-weight: normal; 
+}
+
+.datagrid table tbody .alt td { 
+    background: #F0E5CC; color: #7F4614; 
+}
+
+.datagrid table tbody td:first-child { 
+    border-left: none; 
+}
+
+.datagrid table tbody tr:last-child td { 
+    border-bottom: none; 
+}
+
+.datagrid th#rankScoreTh {
+    width: 12px;
+}
+
+.datagrid th#pointsScoreTh {
+    width: 40px;
+}
+
+.leftScoreDiv {
+    float: left;
+    background: url(nav_bg.jpg) no-repeat scroll center center transparent;
+    width: 180px;
+    height: 100%;
+}
+
+table#scoreboardPresentation {
+    width: 100%;
+}
+
+table#scoreboardPresentation,
+table#scoreboardPresentation tr,
+table#scoreboardPresentation td {
+    border: 0;
+}
+
+table#scoreboardPresentation td#firstColScore,
+table#scoreboardPresentation td#thirdColScore {
+    background: url(celtic-64x64.png) no-repeat scroll center center transparent;
+    width: 160px;
+}

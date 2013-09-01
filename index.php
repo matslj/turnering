@@ -56,61 +56,64 @@ switch ($gPage) {
     // Hem
     // changing from PIndex.php to forum/PIndex.php
     //
-    case 'home':                require_once(TP_PAGESPATH . 'PIndex.php'); break;
-    case 'about':               require_once(TP_PAGESPATH . 'PAbout.php'); break;
+    case 'home':             require_once(TP_PAGESPATH . 'PIndex.php'); break;
+    case 'about':            require_once(TP_PAGESPATH . 'PAbout.php'); break;
 
     //
     // Install database
     //
-    case 'install':             require_once(TP_PAGESPATH . 'install/PInstall.php'); break;
-    case 'installp':            require_once(TP_PAGESPATH . 'install/PInstallProcess.php'); break;
+    case 'install':          require_once(TP_PAGESPATH . 'install/PInstall.php'); break;
+    case 'installp':         require_once(TP_PAGESPATH . 'install/PInstallProcess.php'); break;
 
     //
     // Login
     //
-    case 'login':               require_once(TP_PAGESPATH . 'login/PLoginSimple.php'); break;
-    case 'loginp':              require_once(TP_PAGESPATH . 'login/PLoginProcess.php'); break;
-    case 'logoutp':             require_once(TP_PAGESPATH . 'login/PLogoutProcess.php'); break;
+    case 'login':            require_once(TP_PAGESPATH . 'login/PLoginSimple.php'); break;
+    case 'loginp':           require_once(TP_PAGESPATH . 'login/PLoginProcess.php'); break;
+    case 'logoutp':          require_once(TP_PAGESPATH . 'login/PLogoutProcess.php'); break;
 
     //
     // User profile
     //
-    case 'profile':             require_once(TP_PAGESPATH . 'userprofile/PProfileShow.php'); break;
-    case 'profilep':            require_once(TP_PAGESPATH . 'userprofile/PProfileProcess.php'); break;
+    case 'profile':          require_once(TP_PAGESPATH . 'userprofile/PProfileShow.php'); break;
+    case 'profilep':         require_once(TP_PAGESPATH . 'userprofile/PProfileProcess.php'); break;
 
     //
     // Admin pages
     //
-    case 'admin':               require_once(TP_PAGESPATH . 'admin/index.php'); break;
+    case 'admin':            require_once(TP_PAGESPATH . 'admin/index.php'); break;
 
     //
     // Page updater
     //
-    case 'page-edit':		require_once(TP_PAGESPATH . 'page/PPageEdit.php'); break;
-    case 'page-save':		require_once(TP_PAGESPATH . 'page/PPageSave.php'); break;
-    case 'archive':             require_once(TP_PAGESPATH . 'page/PPictures.php'); break;
-    case 'archivep':            require_once(TP_PAGESPATH . 'page/PPicturesProcess.php'); break;
-    case 'userinterest':        require_once(TP_PAGESPATH . 'page/PPictureUserInterest.php'); break;
+    case 'page-edit':		 require_once(TP_PAGESPATH . 'page/PPageEdit.php'); break;
+    case 'page-save':		 require_once(TP_PAGESPATH . 'page/PPageSave.php'); break;
+    case 'archive':          require_once(TP_PAGESPATH . 'page/PPictures.php'); break;
+    case 'archivep':         require_once(TP_PAGESPATH . 'page/PPicturesProcess.php'); break;
+    case 'userinterest':     require_once(TP_PAGESPATH . 'page/PPictureUserInterest.php'); break;
     
 
-    case 'matchup':        require_once(TP_PAGESPATH . 'page/PPairingOfMatches.php'); break;
-    case 'matchupp':        require_once(TP_PAGESPATH . 'page/PPairingOfMatchesProcess.php'); break;
+    case 'matchup':          require_once(TP_PAGESPATH . 'page/PPairingOfMatches.php'); break;
+    case 'matchupp':         require_once(TP_PAGESPATH . 'page/PPairingOfMatchesProcess.php'); break;
+    case 'scoreboard':       require_once(TP_PAGESPATH . 'page/PScoreboard.php'); break;
+    case 'tournament':          require_once(TP_PAGESPATH . 'page/PTournament.php'); break;
+    case 'tournamentp':         require_once(TP_PAGESPATH . 'page/PTournamentProcess.php'); break;
 
     //	
     //	File Archive
     //	
-    case 'homef':		require_once(TP_PAGESPATH . 'file_handling/PIndex.php'); break;
-    case 'upload':              require_once(TP_PAGESPATH . 'file_handling/PFileUpload.php'); break;	
-    case 'uploadp':             require_once(TP_PAGESPATH . 'file_handling/PFileUploadProcess.php'); break;
-    case 'file-delete':         require_once(TP_PAGESPATH . 'file_handling/PFileDeleteProcess.php'); break;
-    case 'file-deleteMulti':    require_once(TP_PAGESPATH . 'file_handling/PFileDeleteProcessMulti.php'); break;
-    case 'file-moveMulti':      require_once(TP_PAGESPATH . 'file_handling/PFileMoveProcessMulti.php'); break;
-    case 'file-download':	require_once(TP_PAGESPATH . 'file_handling/PFileDownloadProcess.php'); break;
+    case 'homef':		     require_once(TP_PAGESPATH . 'file_handling/PIndex.php'); break;
+    case 'upload':           require_once(TP_PAGESPATH . 'file_handling/PFileUpload.php'); break;	
+    case 'uploadp':          require_once(TP_PAGESPATH . 'file_handling/PFileUploadProcess.php'); break;
+    case 'file-delete':      require_once(TP_PAGESPATH . 'file_handling/PFileDeleteProcess.php'); break;
+    case 'file-deleteMulti': require_once(TP_PAGESPATH . 'file_handling/PFileDeleteProcessMulti.php'); break;
+    case 'file-moveMulti':   require_once(TP_PAGESPATH . 'file_handling/PFileMoveProcessMulti.php'); break;
+    case 'file-download':	 require_once(TP_PAGESPATH . 'file_handling/PFileDownloadProcess.php'); break;
 
     //
     // Default case, trying to access some unknown page, should present some error message
     // or show the home-page
     //
-    default:                    require_once(TP_PAGESPATH . 'P404.php'); break;
+    default:                 require_once(TP_PAGESPATH . 'P404.php'); break;
 }
 ?>

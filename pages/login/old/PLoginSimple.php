@@ -28,6 +28,7 @@ $intFilter->FrontControllerIsVisitedOrDie();
 //
 // Take care of _GET/_POST variables. Store them in a variable (if they are set).
 //
+$adminLogin = $pc->GETisSetOrSetDefault('al', FALSE);
 
 // -------------------------------------------------------------------------------------------
 //
@@ -38,7 +39,7 @@ $history2 = $pc->SESSIONisSetOrSetDefault('history2');
 
 // Define variables
 $title = "Inloggning";
-$buttonText = ">>> Logga in";
+$buttonText = "Logga in";
 $captcha = captcha_CCaptcha::getInstance("");
 
 // -------------------------------------------------------------------------------------------
@@ -46,26 +47,68 @@ $captcha = captcha_CCaptcha::getInstance("");
 // Show the login-form
 //
 $htmlRight = "";
-$htmlLeft = "";
 
+$adminLoginText = "";
+if ($adminLogin) {
+$adminLoginText .= <<<EOD
+    <tr>
+        <td style="text-align: right">
+            <label for="passwordUser">Lösenord: </label>
+        </td>
+        <td>
+            <input id="passwordUser" class="password" type="password" name="passwordUser">
+        </td>
+    </tr>
+EOD;
+}
+
+$htmlLeft = "";
 $htmlMain = <<<EOD
 <h1>{$title}</h1>
 <div id='login'>
+<fieldset>
 <form action="?p=loginp" method="post">
-    <input type='hidden' name='redirect' value='{$redirectTo}'>
-    <input type='hidden' name='history1' value='{$redirectTo}'>
-    <input type='hidden' name='history2' value='{$history2}'>
-    <fieldset>
-            <label for="nameUser">Användarnamn: </label>
-            <input id="nameUser" class="login" type="text" name="nameUser">
-            <label for="passwordUser">Lösenord: </label>
-            <input id="passwordUser" class="password" type="password" name="passwordUser">
-    </fieldset>
-    <fieldset>
-        <span class="password"><a href="#">Forgot Password</a></span>
-        <button type="submit" name="submit">{$buttonText}</button>
-    </fieldset>
+<input type='hidden' name='redirect' value='{$redirectTo}'>
+<input type='hidden' name='history1' value='{$redirectTo}'>
+<input type='hidden' name='history2' value='{$history2}'>
+<input type='hidden' name='admin' value='{$adminLogin}'>
+EOD;
+if (!$adminLogin) {
+    $htmlMain .= "<input type='hidden' value='DIS1000' name='passwordUser'>";
+}
+$htmlMain .= <<<EOD
+    <table>
+        <tr>
+            <td style="text-align: right">
+                <label for="nameUser">Användarnamn: </label>
+            </td>
+            <td>
+                <input id="nameUser" class="login" type="text" name="nameUser">
+            </td>
+        </tr>
+        {$adminLoginText}
+        <tr>
+            <td>&nbsp;</td>
+            <td>
+                <!-- Captcha? -->
+                {$captcha -> getAsHTML()}
+            </td>
+        </tr>
+        <tr>
+            <td colspan='2' style="text-align: right">
+                <button type="submit" name="submit">{$buttonText}</button>
+            </td>
+        </tr>
+    </table>
 </form>
+EOD;
+if (!$adminLogin) {
+    $htmlMain .= "<p style='text-align:right;'>[<a href='?p=login&al=TRUE'>Logga in som Admin</a>]</p>";
+} else {
+    $htmlMain .= "<p style='text-align:right;'>[<a href='?p=login'>Logga in som vanlig användare</a>]</p>";
+}
+$htmlMain .= <<<EOD
+</fieldset>
 </div> <!-- #login -->
 EOD;
 

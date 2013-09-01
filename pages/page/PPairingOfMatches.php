@@ -52,7 +52,9 @@ $userId	= $uo -> getId();
 $db = new CDatabaseController();
 $mysqli = $db->Connect();
 
-$tournament = new CTournamentManager($db, 3, $createRound);
+$tManager = new CTournamentManager();
+$tournament = $tManager->getTournament($db);
+$tournamentHtml = $tManager->getTournamentMatchupsAsHtml($db, $createRound);
 
 //$query 	= $uo -> isAdmin() ? "CALL {$spListFolders}('')" : "CALL {$spListFolders}({$userId})";
 //$res = $db->MultiQuery($query);
@@ -214,7 +216,7 @@ $htmlMain = <<<EOD
         {$htmlPageContent}
     </p>
     <div class='section'>
-    {$tournament->getAllRoundsAsHtml()}
+    {$tournamentHtml}
     <input id='saveScoreButton' type='button' name='postvalues' value='skicka' />
     </div>
     <a href="{$redirectRecreate}">Nästa runda</a>

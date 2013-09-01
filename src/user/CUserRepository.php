@@ -65,7 +65,7 @@ EOD;
          $tempUsers = array();
          while($row = $res->fetch_object()) {
              $tempActive = $row->active == 1 ? true : false;
-             $tempUsers[$row->idUser] = new user_CUserData($row->idUser, $row->accountUser, $row->nameUser, $row->emailUser, $row->avatarUser, $row->idGroup, $row->army, $tempActive);
+             $tempUsers[$row->idUser] = new user_CUserData($row->idUser, $row->accountUser, $row->nameUser, $row->emailUser, $row->avatarUser, $row->idGroup, $row->armyUser, $tempActive);
          }
 
          return $tempUsers;

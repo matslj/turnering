@@ -13,14 +13,99 @@ div#login {
 }
 
 div#login fieldset {
-    padding: 10px;
-    background-color: #dbdadc;
-    border-right: 3px solid black;
-    border-bottom: 3px solid black;
+    border: medium none;
+    height: 500px;
+    margin: 100px auto;
+    padding: 30px 0;
+    width: 326px;
+    
+    font: inherit;
+    vertical-align: baseline;
 }
 
+/*
 div#login input.login,
 div#login input.password
 {
 	width: 110px;
+}
+*/
+
+div#login label, div#login button{
+	font-family:MisoRegular, Helvetica,Arial,sans-serif;
+	text-transform:uppercase;
+	letter-spacing:4px;
+	font-size: 10px;
+	color:#fff;
+}
+	
+div#login .password{
+	float:left;
+	margin:8px 0;
+	font-family:MisoRegular, Helvetica,Arial,sans-serif;
+	text-transform:uppercase;
+	letter-spacing:4px;
+	font-size:1em;
+	color:#fff;
+}	
+		
+div#login input {
+	background-color:#303030;
+	-webkit-border-radius: .4em;
+	-moz-border-radius: .4em;
+	border-radius: .4em;
+	-moz-box-shadow: 0 -1px 0 0px #000;
+	-webkit-box-shadow: 0 -1px 0 0px #000;
+	box-shadow: 0 -1px 0 0px #000;	
+	border: none;
+	width:316px;
+	height:27px;	
+	margin:15px 0;
+	color:#fff;
+	padding:0 0 0 10px;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:1.2em;
+	letter-spacing:2px;
+}
+
+div#login .ico {
+	float:right;
+}
+
+div#login button {
+	width:79px;
+	height:24px;
+	text-align:center;
+	border:none;
+	float:right;
+	background: #363535;
+	background: -webkit-gradient(linear, left top, left bottom, from(#3a3a3a), to(#303030));
+	background: -moz-linear-gradient(bottom,  #303030,  #3a3a3a);
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#3a3a3a', endColorstr='#303030');
+	-webkit-border-radius: .2em;
+	-moz-border-radius: .2em;
+	border-radius: .2em;
+	-webkit-box-shadow: 0 0px 1px rgba(255,255,255,0.1);
+	-moz-box-shadow: 0 0px 1px rgba(255,255,255,0.1);
+	box-shadow: 0 0px 1px rgba(255,255,255,0.1);
+	color:#fff;
+	text-align:right;
+}	
+
+div#login button:hover {
+    background: #363535;
+    background: -webkit-gradient(linear, left top, left bottom, from(#4b4b4b), to(#303030));
+    background: -moz-linear-gradient(bottom,  #303030,  #4b4b4b);
+    filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#4b4b4b', endColorstr='#303030');
+}
+
+div#login button:active {
+    border:none;
+    -webkit-box-shadow: 0 0px 2px rgba(255,255,255,0.2);
+    -moz-box-shadow: 0 0px 2px rgba(255,255,255,0.2);
+    box-shadow: 0 0px 2px rgba(255,255,255,0.2);
+}
+
+div#login input:focus:required:invalid {
+	color:#000;
 }

@@ -153,8 +153,10 @@ CREATE TABLE {$tTournament} (
   roundsTournament INT NOT NULL,
   typeTournament VARCHAR(30) NOT NULL,
   activeTournament BOOL NOT NULL,
+  byeScoreTournament INT NOT NULL,
   createdTournament DATETIME NOT NULL,
-  dateTournament DATETIME NOT NULL
+  dateFromTournament DATETIME NOT NULL,
+  dateTomTournament DATETIME NOT NULL
 );
 
 
@@ -230,14 +232,16 @@ CREATE PROCEDURE {$spCreateTournament}
     IN aNrOfRounds INT,
     IN aType VARCHAR(30),
     IN anActiveTournament BOOL,
-    IN aDate DATETIME,
+    IN aByeScore INT,
+    IN aDateFrom DATETIME,
+    IN aDateTom DATETIME,
     OUT aTournamentId INT
 )
 BEGIN
 	INSERT INTO {$tTournament}
-        (creatorTournament_idUser, placeTournament, roundsTournament, typeTournament, activeTournament, createdTournament, dateTournament)
+        (creatorTournament_idUser, placeTournament, roundsTournament, typeTournament, activeTournament, byeScoreTournament, createdTournament, dateFromTournament, dateTomTournament)
     VALUES
-        (anIdCreator, aPlace, aNrOfRounds, aType, anActiveTournament, NOW(), aDate);
+        (anIdCreator, aPlace, aNrOfRounds, aType, anActiveTournament, aByeScore, NOW(), aDateFrom, aDateTom);
 
     SELECT LAST_INSERT_ID() INTO aTournamentId;
 END;
@@ -253,7 +257,9 @@ CREATE PROCEDURE {$spEditTournament}
     IN aNrOfRounds INT,
     IN aType VARCHAR(30),
     IN anActiveTournament BOOL,
-    IN aDate DATETIME
+    IN aByeScore INT,
+    IN aDateFrom DATETIME,
+    IN aDateTom DATETIME
 )
 BEGIN
     -- Only update if there are no matches in the tournament
@@ -265,11 +271,13 @@ BEGIN
     IF i = 0 THEN
     BEGIN
         UPDATE {$tTournament} SET
-                placeTournament = aPlace,
-                roundsTournament = aNrOfRounds,
-                typeTournament = aType,
-                activeTournament = anActiveTournament,
-                dateTournament = aDate
+                placeTournament    = aPlace,
+                roundsTournament   = aNrOfRounds,
+                typeTournament     = aType,
+                activeTournament   = anActiveTournament,
+                byeScoreTournament = aByeScore,
+                dateFromTournament = aDateFrom,
+                dateTomTournament  = aDateTom
         WHERE
                 idTournament = aTournamentId
         LIMIT 1;
@@ -300,11 +308,13 @@ END;
 DROP PROCEDURE IF EXISTS {$spCreateMatch};
 CREATE PROCEDURE {$spCreateMatch}
 (
-	IN anIdUserOne   INT,
-    IN anIdUserTwo   INT,
-	IN aRound        INT,
-    IN aTournamentId INT,
-    OUT aMatchId     INT
+	IN anIdUserOne     INT,
+    IN anIdUserTwo     INT,
+	IN aRound          INT,
+    IN aTournamentId   INT,
+    IN aScorePlayerOne INT,
+    IN aScorePlayerTwo INT,
+    OUT aMatchId       INT
 )
 BEGIN
         
@@ -312,12 +322,12 @@ BEGIN
 		INSERT INTO {$tMatch}
         (playerOneMatch_idUser, playerTwoMatch_idUser, playerOneScoreMatch, playerTwoScoreMatch, roundMatch, lastUpdateMatch, tRefMatch_idTournament)
         VALUES
-        (anIdUserOne, anIdUserTwo, 0, 0, aRound, NOW(), aTournamentId);
+        (anIdUserOne, anIdUserTwo, aScorePlayerOne, aScorePlayerTwo, aRound, NOW(), aTournamentId);
     ELSE
         INSERT INTO {$tMatch}
         (playerOneMatch_idUser, playerOneScoreMatch, playerTwoScoreMatch, roundMatch, lastUpdateMatch, tRefMatch_idTournament)
         VALUES
-        (anIdUserOne, 0, 0, aRound, NOW(), aTournamentId);
+        (anIdUserOne, aScorePlayerOne, aScorePlayerTwo, aRound, NOW(), aTournamentId);
 	END IF;	
     
     SELECT LAST_INSERT_ID() INTO aMatchId;
@@ -782,7 +792,7 @@ INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
     VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'TiburtiusMarkus'), 'usr');
         
 SET @aTournamentId = 0;
-CALL {$spCreateTournament}(1, 'Here', 3, 'Swiss', true, NOW(), @aTournamentId);
+CALL {$spCreateTournament}(1, 'Here', 3, 'Swiss', true, 1000, NOW(), NOW(), @aTournamentId);
 SELECT @aTournamentId AS id;
 
 EOD;
