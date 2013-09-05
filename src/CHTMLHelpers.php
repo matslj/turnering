@@ -102,7 +102,7 @@ class CHTMLHelpers {
      * @param type $ddName the name of the html <select>-component
      * @return string selectable armies as html
      */
-    public static function getHtmlForSelectableArmies($ddId, $ddName = "army") {
+    public static function getHtmlForSelectableArmies($ddId, $ddName = "army", $selectedArmy = "") {
 
         $selectableArmies = SELECTABLE_ARMIES;
         $sList = unserialize($selectableArmies);
@@ -110,7 +110,8 @@ class CHTMLHelpers {
         $html = "<select id='{$ddId}' class='{$ddName}' name='{$ddName}'>";
         $html .= "<option value=''>Välj armé</option>";
         foreach($sList as $key => $value) {
-            $html .= "<option value='{$key}'>{$key}</option>";
+            $selected = !empty($selectedArmy) && (strcmp($key, $selectedArmy) == 0) ? " SELECTED" : "";
+            $html .= "<option value='{$key}'{$selected}>{$key}</option>";
         }
         $html .= "</select>";
 

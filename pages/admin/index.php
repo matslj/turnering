@@ -34,10 +34,10 @@ switch($thePage) {
     case 'anvandarep': require_once(TP_PAGESPATH . 'admin/PUserEdit.php');
     break;
 
-    // Folder management pages
-    case 'folders': require_once(TP_PAGESPATH . 'admin/PFolders.php');
+    // Tournament management pages
+    case 'tournament': require_once(TP_PAGESPATH . 'admin/PTournament.php');
     break;
-    case 'foldersp': require_once(TP_PAGESPATH . 'admin/PFoldersProcess.php');
+    case 'tournamentp': require_once(TP_PAGESPATH . 'admin/PTournamentProcess.php');
     break;
 
     // Pages for connecting user to folders

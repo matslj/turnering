@@ -83,12 +83,9 @@
     width: 40px;
 }
 
-.leftScoreDiv {
-    float: left;
-    background: url(nav_bg.jpg) no-repeat scroll center center transparent;
-    width: 180px;
-    height: 100%;
-}
+/* -----------------------
+   - The scoreboard
+   ----------------------- */
 
 table#scoreboardPresentation {
     width: 100%;
@@ -104,4 +101,68 @@ table#scoreboardPresentation td#firstColScore,
 table#scoreboardPresentation td#thirdColScore {
     background: url(celtic-64x64.png) no-repeat scroll center center transparent;
     width: 160px;
+}
+
+/* -----------------------
+   - The matchup
+   ----------------------- */
+
+div.sectionMatchup {
+    width: 420px;
+    margin: 0 auto;
+}
+
+#allRounds {
+    width: 99%;
+}
+
+.round {
+    width: 97%;
+    padding: 5px 10px 5px 10px;
+    margin: 0 0 10px 0;
+    background-color: #3F3F3F;
+}
+
+.round span.byedPlayer {
+    color: #FF8E00;
+    font-weight: bold;
+}
+
+.round h2 {
+    border-bottom: solid #565656 1px;
+}
+
+.round input {
+    width: 50px;
+}
+
+.round table {
+    width: 99%;
+}
+
+.round table tr td:first-child {
+    width: 46%;
+    text-align: right;
+}
+
+.round table td.marker {
+    width: 6%;
+    text-align: center;
+}
+
+.round span.panelMatchup {
+    float: right;
+}
+
+.round a {
+    text-decoration: none;
+}
+
+input#saveScoreButton {
+    width: 120px;
+}
+
+span#info {
+    color: #FA0021;
+    padding-left: 7px;
 }

@@ -15,7 +15,6 @@
 // Get pagecontroller helpers. Useful methods to use in most pagecontrollers
 //
 $pc = CPageController::getInstance(FALSE);
-// $pc->LoadLanguage(__FILE__);
 
 // -------------------------------------------------------------------------------------------
 //
@@ -26,11 +25,6 @@ $intFilter->FrontControllerIsVisitedOrDie();
 
 // -------------------------------------------------------------------------------------------
 //
-// Take care of _GET/_POST variables. Store them in a variable (if they are set).
-//
-
-// -------------------------------------------------------------------------------------------
-//
 // Always redirect to latest visited page on success.
 //
 $redirectTo = $pc->SESSIONisSetOrSetDefault('history1');
@@ -38,8 +32,9 @@ $history2 = $pc->SESSIONisSetOrSetDefault('history2');
 
 // Define variables
 $title = "Inloggning";
-$buttonText = ">>> Logga in";
-$captcha = captcha_CCaptcha::getInstance("");
+$buttonText = ">>>&nbsp;&nbsp;Logga in";
+// Link to images
+$imageLink = WS_IMAGES;
 
 // -------------------------------------------------------------------------------------------
 //
@@ -56,13 +51,13 @@ $htmlMain = <<<EOD
     <input type='hidden' name='history1' value='{$redirectTo}'>
     <input type='hidden' name='history2' value='{$history2}'>
     <fieldset>
-            <label for="nameUser">Användarnamn: </label>
-            <input id="nameUser" class="login" type="text" name="nameUser">
-            <label for="passwordUser">Lösenord: </label>
-            <input id="passwordUser" class="password" type="password" name="passwordUser">
+            <label for="nameUser">Användarnamn: <span class="ico"><img src="{$imageLink}/user.png" alt="ikon användarnamn" border="0" /></span></label>
+            <input id="nameUser" class="login" type="text" name="nameUser" required autofocus>
+            <label for="passwordUser">Lösenord: <span class="ico"><img src="{$imageLink}/pass.png" alt="ikon lösenord" border="0" /></span></label>
+            <input id="passwordUser" class="password" type="password" name="passwordUser" required>
     </fieldset>
-    <fieldset>
-        <span class="password"><a href="#">Forgot Password</a></span>
+    <fieldset style='margin-top: 20px;'>
+        <!-- <span class="password"><a href="#">Forgot Password</a></span> -->
         <button type="submit" name="submit">{$buttonText}</button>
     </fieldset>
 </form>

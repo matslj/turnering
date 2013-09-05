@@ -35,6 +35,7 @@ $intFilter -> IsUserMemberOfGroupAdminOrIsCurrentUserOrTerminate($user);
 $password 	= $pc->POSTisSetOrSetDefault('password1', '');
 $passwordAgain 	= $pc->POSTisSetOrSetDefault('password2', '');
 $email 	= $pc->POSTisSetOrSetDefault('email', '');
+$army 	= $pc->POSTisSetOrSetDefault('army', '');
 $avatar = $pc->POSTisSetOrSetDefault('avatar', '');
 $gravatar = $pc->POSTisSetOrSetDefault('gravatar', '');
 $typeOfSubmit = $pc->POSTisSetOrSetDefault('submit', '');
@@ -45,6 +46,7 @@ $db = new CDatabaseController();
 $spChangePassword = DBSP_SetUserPassword;
 $spChangeEmail = DBSP_SetUserEmail;
 $spChangeAvatar = DBSP_SetUserAvatar;
+$spChangeArmy = DBSP_SetUserArmy;
 $spChangeGravatar = DBSP_SetUserGravatar;
 $query = "";
 $mysqli = $db->Connect();
@@ -85,6 +87,14 @@ switch ($typeOfSubmit) {
         $gravatar = $mysqli->real_escape_string($gravatar);
         // Create the query
         $query = "CALL {$spChangeGravatar}({$user}, '{$gravatar}');";
+        break;
+    case "change-army":
+        $army = $mysqli->real_escape_string($army);
+        if (!CHTMLHelpers::isSelectableArmy($army)) {
+            $army = '';
+        }
+        // Create the query
+        $query = "CALL {$spChangeArmy}({$user}, '{$army}');";
         break;
     default:
        $log -> debug("nada");

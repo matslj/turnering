@@ -95,9 +95,8 @@ switch ($gPage) {
 
     case 'matchup':          require_once(TP_PAGESPATH . 'page/PPairingOfMatches.php'); break;
     case 'matchupp':         require_once(TP_PAGESPATH . 'page/PPairingOfMatchesProcess.php'); break;
+    case 'matchupap':        require_once(TP_PAGESPATH . 'page/PPairingOfMatchesActionProcess.php'); break;
     case 'scoreboard':       require_once(TP_PAGESPATH . 'page/PScoreboard.php'); break;
-    case 'tournament':          require_once(TP_PAGESPATH . 'page/PTournament.php'); break;
-    case 'tournamentp':         require_once(TP_PAGESPATH . 'page/PTournamentProcess.php'); break;
 
     //	
     //	File Archive

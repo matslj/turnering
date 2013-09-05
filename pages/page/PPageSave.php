@@ -32,7 +32,7 @@ $intFilter->UserIsSignedInOrRecirectToSignIn();
 // Take care of _GET/_POST variables. Store them in a variable (if they are set).
 //
 $title		= $pc->POSTisSetOrSetDefault('title', 'No title');
-$content	= $pc->POSTisSetOrSetDefault('content', 'No content');
+$content	= $pc->POSTisSetOrSetDefault('content', '');
 $pageId     = $pc->POSTisSetOrSetDefault('page_id', 0);
 $pageName   = $pc->POSTisSetOrSetDefault('page_name', '');
 $action		= $pc->POSTisSetOrSetDefault('action', '');

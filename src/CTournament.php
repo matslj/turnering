@@ -38,9 +38,9 @@ class CTournament {
         $this->type = $type;
         $this->active = $active;
         $this->byeScore = $byeScore;
-        $this->tournamentDateFrom = $tournamentDateFrom;
-        $this->tournamentDateTom = $tournamentDateTom;
-        $this->creationDate = $creationDate;
+        $this->tournamentDateFrom = CDate::getInstanceFromMysqlDatetime($tournamentDateFrom);
+        $this->tournamentDateTom = CDate::getInstanceFromMysqlDatetime($tournamentDateTom);
+        $this->creationDate = CDate::getInstanceFromMysqlDatetime($creationDate);
     }
     
     public static function getEmptyInstance() {
@@ -109,15 +109,19 @@ EOD;
          return $tempTournament;
     }
     
-    public function createOrRecreateRound($theDatabase, $theRoundToCreate = 1) {
+    public function createOrRecreateRound($theDatabase, $theRoundToCreate = 0) { // Was 1
+        
         // If no matchups where found in db -> create the first round and store it in DB
-        if ($this->tournamentMatrix == null || ($theRoundToCreate == 1 && $this->currentRound == 1 && !$this->currentRoundEdited)) {
+        if ($this->tournamentMatrix == null || ($theRoundToCreate == 1 && $this->currentRound == 1)) { //  && !$this->currentRoundEdited
             self::$LOG -> debug("inne häär");
             $this->tournamentMatrix = $this->createFirstRound($theDatabase);
+        } else if ($theRoundToCreate < $this->currentRound && $theRoundToCreate > 0) {
+            self::$LOG -> debug("dags för delete");
+            $this->deleteCurrentRound($theDatabase);
         } else if ($theRoundToCreate > 1) {
             self::$LOG -> debug("more rounds. current round: " . $this->currentRound . " the round to create: " . $theRoundToCreate . " edited: " . $this->currentRoundEdited . " complete: " . $this->currentRoundComplete);
             $okToCreate = false;
-            if ($theRoundToCreate == $this->currentRound && !$this->currentRoundEdited) {
+            if ($theRoundToCreate == $this->currentRound) { // && !$this->currentRoundEdited
                 $okToCreate = true;
                 self::$LOG -> debug("more rounds 1");
             }
@@ -190,14 +194,6 @@ EOD;
         $this->active = $active;
     }
 
-    public function getTournamentDate() {
-        return $this->tournamentDate;
-    }
-
-    public function setTournamentDate($tournamentDate) {
-        $this->tournamentDate = $tournamentDate;
-    }
-
     public function getCreationDate() {
         return $this->creationDate;
     }
@@ -206,13 +202,41 @@ EOD;
         $this->creationDate = $creationDate;
     }
     
+    public function getByeScore() {
+        return $this->byeScore;
+    }
+
+    public function setByeScore($byeScore) {
+        $this->byeScore = $byeScore;
+    }
+
+    public function getTournamentDateFrom() {
+        return $this->tournamentDateFrom;
+    }
+
+    public function setTournamentDateFrom($tournamentDateFrom) {
+        $this->tournamentDateFrom = $tournamentDateFrom;
+    }
+
+    public function getTournamentDateTom() {
+        return $this->tournamentDateTom;
+    }
+
+    public function setTournamentDateTom($tournamentDateTom) {
+        $this->tournamentDateTom = $tournamentDateTom;
+    }
+    
+    public function isCurrentRoundComplete() {
+        return $this->currentRoundComplete;
+    }
+        
     // ***************************************************************************************
     // **      Below are business methods
     // **
     
     private function createFirstRound($theDatabase) {
         $userRepository = user_CUserRepository::getInstance($theDatabase);
-        $tempOldUserList = $userRepository->getUsers();
+        $tempOldUserList = $userRepository->getActiveUsers();
         
         $tempUserList = array();
         foreach ($tempOldUserList as $value) {
@@ -263,7 +287,7 @@ EOD;
         
         // Fetch all users active in this tournament.
         $userRepository = user_CUserRepository::getInstance($theDatabase);
-        $tempOldUserList = $userRepository->getUsers();
+        $tempOldUserList = $userRepository->getActiveUsers();
         
         // Not thet the users are fetched, create a copy of them and calulate
         // every players score up to (but not including - if not 0, then sum all up) the round that we
@@ -390,17 +414,20 @@ EOD;
             }
         }
         
-        self::$LOG -> debug("forward completed");
+        self::$LOG -> debug("forward completed" . $goBackwardAlso);
         
         if ($goBackwardAlso) {
             
+            self::$LOG -> debug("going back!");
             // Backward
             $sign = -1;
 			$startPos = $numberOfPlayers - 1;
 			$stopPos = -1; 
-            
-            for ($index = $startPos; $index < $stopPos; $index = $index + $sign * 2) {
-                if ($this->hasPlayedBefore($players[$index]->getPlayerOne(), $players[$index + $sign]->getPlayerTwo(), $theNewRound)) {
+            self::$LOG -> debug("<backwards before> index: " . $index . " sign: " . $sign . " start/stop: " . $startPos . ", " . $stopPos);
+            for ($index = $startPos; $index != $stopPos; $index = $index + $sign * 2) {
+                self::$LOG -> debug("<backwards> index: " . $index . " sign: " . $sign . " start/stop: " . $startPos . ", " . $stopPos);
+                if ($this->hasPlayedBefore($players[$index], $players[$index + $sign], $theNewRound)) {
+                    self::$LOG -> debug("** <backwards> hasplayedbefore **");
                     // The two teams next to each other on the scoreboard has played before, look for first best
                     $playerIndex = $this->findFirstEligibleMatch($stopPos, $players, $index, $index + 2 * $sign, $theNewRound, false);
                     if ($playerIndex > 0) {
@@ -537,6 +564,26 @@ EOD;
         usort($players, array("user_CUserData", "cmp"));
     }
     
+    private function deleteCurrentRound($theDatabase) {
+        self::$LOG -> debug("deleting round: " . $this->currentRound . " on turnament: " . $this->id);
+        // Delete all matchups for this round
+        $spDeleteAllMatchesOnRound = DBSP_DeleteAllMatchesOnRound;
+        $queryDeleteAll = "CALL {$spDeleteAllMatchesOnRound}({$this->currentRound}, {$this->id});";
+        $resDel = $theDatabase->MultiQuery($queryDeleteAll);
+        $nrOfStatements = $theDatabase->RetrieveAndIgnoreResultsFromMultiQuery();
+        
+        if($nrOfStatements != 1) {
+            // Delete not OK
+            self::$LOG -> debug("ERROR: Kunde inte radera runda.");
+        } else {
+            // Delete from matrix also
+            unset($this->tournamentMatrix[$this->currentRound]);
+            $this->currentRound--;
+            $this->currentRoundComplete = true;
+            $this->currentRoundEdited = false;
+        }
+    }
+    
     private static function storeCreatedMatchupsOnRound($theDatabase, $theRound, $theMatchups, $theTournamentId) {
         // Delete all matchups for this round
         $spDeleteAllMatchesOnRound = DBSP_DeleteAllMatchesOnRound;
@@ -629,7 +676,13 @@ EOD;
         return $this->currentRound + 1;
     }
     
-    public function getRoundAsHtml($theRound, $theEditable = false) {
+    public function getRoundAsHtml($theRound, $theEditable = false, $admin = false) {
+        
+        // Link to images
+        $imageLink = WS_IMAGES;
+        
+        $siteLink = WS_SITELINK;
+        
         $tempRound = $this->tournamentMatrix[$theRound];
         
         $loggedOnUser = CUserData::getInstance();
@@ -637,7 +690,26 @@ EOD;
         $byedPlayer = null;
         
         $html = "<div id='round{$theRound}' class='round'>";
-        $html .= "<h2>Omgång {$theRound}</h2>";
+        
+        $thePanel = "";
+        if ($admin && $theRound == $this->currentRound) {
+            $deleteSign = "";
+            if ($theRound > 1) {
+                $dr = $theRound - 1;
+                $deleteSign = "<a href='{$siteLink}?p=matchupap&cr={$dr}'><img src='{$imageLink}/close_24.png'></a>";
+            }
+ 
+            $thePanel =  <<< EOD
+                <span class="panelMatchup">
+                    <a href="{$siteLink}?p=matchupap&cr={$theRound}">
+                        <img src="{$imageLink}/recycle_24.png">
+                    </a>
+                    {$deleteSign}
+                </span>
+EOD;
+        }
+        
+        $html .= "<h2>Omgång {$theRound}{$thePanel}</h2>";
         
         foreach ($tempRound as $value) {
             $html .= "<div class='matchup'>";
@@ -645,7 +717,7 @@ EOD;
             if ($value->getPlayerOne()->isEmptyInstance() || $value->getPlayerTwo()->isEmptyInstance()) {
                 $byedPlayer = $value->getPlayerOne()->isEmptyInstance() ? $value->getPlayerTwo() : $value->getPlayerOne();
             } else {
-                $html .= "<tr><td>{$value->getPlayerOne()->getAccount()}</td><td>-</td><td>{$value->getPlayerTwo()->getAccount()}</td></tr>";
+                $html .= "<tr><td>{$value->getPlayerOne()->getAccount()}</td><td class='marker'>-</td><td>{$value->getPlayerTwo()->getAccount()}</td></tr>";
                 $html .= "<tr><td>";
                 if ($theEditable && ($value->isPlayerInMatch($loggedOnUser->getId()) || $loggedOnUser->isAdmin())) {
                     $html .= "<input id='playerOneScore#{$value->getId()}' class='scoreInput' type='text' name='playerOneScore#{$value->getId()}' value='{$value->getScorePlayerOne()}' />";
@@ -666,16 +738,21 @@ EOD;
         if ($byedPlayer != null) {
             $html .= "<p>Spelare som får stå över den här rundan: <span class='byedPlayer'>" . $byedPlayer->getAccount() . "</span></p>";
         }
+        if ($theRound == $this->currentRound) {
+            $html .= "<div>";
+            $html .= "<span><input id='saveScoreButton' type='button' name='postvalues' value='Spara resultat' /></span><span id='info'></span>";
+            $html .= "</div>";
+        }
         $html .= "</div> <!-- End div with round id -->";
         
         return $html;
     }
     
-    public function getAllRoundsAsHtml() {
+    public function getAllRoundsAsHtml($admin = false) {
         $html = "<div id='allRounds'>";
         foreach ($this->tournamentMatrix as $key => $value) {
             $editable = $key == $this->currentRound;
-            $html .= $this->getRoundAsHtml($key, $editable);
+            $html .= $this->getRoundAsHtml($key, $editable, $admin);
         }
         $html .= "</div> <!-- End of allRounds div -->";
         return $html;

@@ -7,19 +7,24 @@
  */
 
 div#login {
-    width: 390px;
-    margin-left: auto;
-    margin-right: auto;
+    border: medium none;
+    height: 400px;
+    width: 326px;
+    padding: 30px 0;
+    margin: 10px auto;
+}
+
+div#login form {
+    border: 0;
+    margin: 0;
+    padding: 0;
 }
 
 div#login fieldset {
-    border: medium none;
-    height: 500px;
-    margin: 100px auto;
-    padding: 30px 0;
-    width: 326px;
-    
     font: inherit;
+    border: none;
+    padding: 0;
+    margin: 0;
     vertical-align: baseline;
 }
 
@@ -42,9 +47,8 @@ div#login label, div#login button{
 div#login .password{
 	float:left;
 	margin:8px 0;
-	font-family:MisoRegular, Helvetica,Arial,sans-serif;
 	text-transform:uppercase;
-	letter-spacing:4px;
+	letter-spacing:2px;
 	font-size:1em;
 	color:#fff;
 }	
@@ -68,13 +72,19 @@ div#login input {
 	letter-spacing:2px;
 }
 
+div#login input:invalid, div#login textarea:invalid {
+    border-radius: 1px 1px 1px 1px;
+    box-shadow: 0 0 5px red;
+}
+
 div#login .ico {
 	float:right;
 }
 
 div#login button {
-	width:79px;
+	width:160px;
 	height:24px;
+    font-weight: bold;
 	text-align:center;
 	border:none;
 	float:right;
@@ -90,6 +100,7 @@ div#login button {
 	box-shadow: 0 0px 1px rgba(255,255,255,0.1);
 	color:#fff;
 	text-align:right;
+    cursor: pointer;
 }	
 
 div#login button:hover {

@@ -18,7 +18,7 @@ $menuNavBarForAdmin = Array (
         'Hem'           => '?p=home',
         'Matchups' 	    => '?p=matchup',
         'Poängtavla' 	=> '?p=scoreboard',
-        'Konfiguration' => '?p=tournament',
+        'Konfiguration' => '?p=admin_tournament',
         //'Bildarkiv' 	=> '?p=archive',
         'Deltagare'     => '?p=admin_anvandare',
         //'Bildintresse' 	=> '?p=userinterest',

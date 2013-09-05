@@ -36,10 +36,12 @@ CPageController::IsNumericOrDie($createRound);
 
 $redirect = "?p=" . $pc->computePage();
 $action = $redirect . "p";
+$actionProcess = $redirect. "ap";
 
 $uo = CUserData::getInstance();
 $account = $uo -> getAccount();
 $userId	= $uo -> getId();
+$admin = $uo-> isAdmin();
 
 // $log -> debug("userid: " . $userId);
 // Always check whats coming in...
@@ -54,7 +56,7 @@ $mysqli = $db->Connect();
 
 $tManager = new CTournamentManager();
 $tournament = $tManager->getTournament($db);
-$tournamentHtml = $tManager->getTournamentMatchupsAsHtml($db, $createRound);
+$tournamentHtml = $tManager->getTournamentMatchupsAsHtml($db, $admin);
 
 //$query 	= $uo -> isAdmin() ? "CALL {$spListFolders}('')" : "CALL {$spListFolders}({$userId})";
 //$res = $db->MultiQuery($query);
@@ -102,6 +104,7 @@ $db->RetrieveAndStoreResultsFromMultiQuery($results);
 $row = $results[0]->fetch_object();
 if ($row) {
     $pageId     = $row->id;
+    $title      = $row->title;
     $content    = $row->content;
 }
 $results[0]->close();
@@ -120,6 +123,13 @@ $mysqli->close();
 
 // Link to images
 $imageLink = WS_IMAGES;
+
+$nR = $tournament->getNextRound();
+$redirectRecreate = $actionProcess . "&cr={$nR}";
+$nextLink = "<a href='{$redirectRecreate}'><img style='border: 0;' src='{$imageLink}play_48.png' /></a>";
+if ($nR > $tournament->getNrOfRounds() || !$admin) {
+    $nextLink = "";
+}
 
 // -------------------------------------------------------------------------------------------
 //
@@ -141,6 +151,7 @@ $javaScript .= <<<EOD
 //
 //
 //
+var nLink = "{$nextLink}";
 
 (function($){
     $(document).ready(function() {
@@ -149,15 +160,63 @@ $javaScript .= <<<EOD
         // Event declaration
         $('#saveScoreButton').click(function(event) {
             $(event.target).attr('disabled', 'disabled');
-            $('p#info').html('');
+            $('span#info').html('');
+            if (isComplete()) {
+                $("#scoreSubmitDiv").html(nLink);
+            } else {
+                $("#scoreSubmitDiv").html("");
+            }
             saveScores();
         });
         
         $('input.scoreInput').bind('keyup', function() {
+            if (isComplete() && !$('span#info').html()) {
+                $("#scoreSubmitDiv").html(nLink);
+            } else {
+                $("#scoreSubmitDiv").html("");
+            }
             $('input#saveScoreButton').removeAttr('disabled');
-            $('p#info').html('Resultat har ändrats, glöm inte att spara!')
+            $('span#info').html('Resultat har ändrats, glöm inte att spara!')
         });
     });
+    
+    function isComplete() {
+        var allTrue = true;
+        var minKey = -1,
+            maxKey = -1;
+        var targetArray = [];
+        $(".round input:text").each(function() {
+            var inpId = $(this).attr("id");
+            var index = inpId.indexOf("#");
+            var key = inpId.substring(index + 1);
+            if (minKey < 0 || key < minKey) {
+                minKey = key;
+            }
+            if (maxKey < 0 || key > maxKey) {
+                maxKey = key;
+            }
+            var inpVal = parseInt($(this).val(), 10);
+            if (isNaN(inpVal)) {
+                inpVal = 0;
+            }
+            
+            if (!(key in targetArray)) {
+                targetArray[key] = 0;
+            }
+            targetArray[key] = inpVal + targetArray[key];
+            
+        });
+        
+        for (var i = minKey; i <= maxKey; i++) {
+            if (targetArray[i] == '' || targetArray[i] == 0) {
+                allTrue = false;
+            }
+        }
+//        console.log("minkey: " + minKey);
+//        console.log("maxkey: " + maxKey);
+//        console.log(targetArray.length);
+        return allTrue;
+    }
     
     function saveScores() {
 
@@ -203,7 +262,12 @@ $javaScript .= <<<EOD
 })(jQuery);
 EOD;
             
-$redirectRecreate   = $redirect . "&cr={$tournament->getNextRound()}";
+$redirectRecreate = $redirect . "&cr={$tournament->getNextRound()}";
+$nextRound = "<div style='width: 48px; margin: 0 auto;' id='scoreSubmitDiv'>";
+if ($tournament->isCurrentRoundComplete()) {
+    $nextRound .= $nextLink;
+}
+$nextRound .= "</div>";
 // $headerHtml = empty($currentFolderName) ? "Alla bilder" : "Bilder i katalogen: " . $currentFolderName;
 
 // -------------------------------------------------------------------------------------------
@@ -211,17 +275,15 @@ $redirectRecreate   = $redirect . "&cr={$tournament->getNextRound()}";
 // Create HTML for page
 //
 $htmlMain = <<<EOD
-<h1>{$htmlPageTitleLink}</h1>
+    <h1>{$htmlPageTitleLink}</h1>
     <p>
         {$htmlPageContent}
     </p>
-    <div class='section'>
+    <div class='sectionMatchup'>
     {$tournamentHtml}
-    <input id='saveScoreButton' type='button' name='postvalues' value='skicka' />
-    </div>
-    <a href="{$redirectRecreate}">Nästa runda</a>
-    <p id="info"></p>
+    {$nextRound}
     {$htmlPageTextDialog}
+    </div>
 EOD;
 
 $htmlRight = "";

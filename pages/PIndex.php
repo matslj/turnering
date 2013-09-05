@@ -44,17 +44,38 @@ $userId	= isset($_SESSION['idUser']) ? $_SESSION['idUser'] : "";
 $pageName = basename(__FILE__);
 
 $needjQuery = TRUE;
-$htmlHead = "";
+$htmlHead = <<< EOD
+<style>
+    .whenWhere {
+        float: right;
+        padding: 0 5px 0 5px;
+        margin: 0 10px 10px 0;
+        background-color: #454545;
+        border-style: solid;
+        border-width: 1px;
+        border-color: #6E6E6E #303030 #303030 #6E6E6E;
+        width: 130px;
+    }
+
+    .whenWhere p {
+        font-style: italic;
+        font-size: 9px;
+    }
+</style>
+EOD;
+
 $javaScript = "";
 
 $titleLink 	= "";
-$title          = "";
+$title      = "";
 $content 	= "";
-$isEditable     = "";
+$isEditable = "";
 
 // Connect
 $db 	= new CDatabaseController();
 $mysqli = $db->Connect();
+
+$tournament = CTournament::getInstanceById($db, 1);
 
 // Get the SP names
 $spGetSidaDetails	= DBSP_PGetSidaDetails;
@@ -129,7 +150,12 @@ require_once(TP_PAGESPATH . 'page/PPageEditDialog.php');
 //
 $htmlMain = <<<EOD
 <h1>{$htmlPageTitleLink}</h1>
+<div class="whenWhere">
+    <p>Från: {$tournament->getTournamentDateFrom()->getDate()} kl: {$tournament->getTournamentDateFrom()->getHour()}:{$tournament->getTournamentDateFrom()->getMinute()}</p>
+    <p>Till: {$tournament->getTournamentDateTom()->getDate()} kl: {$tournament->getTournamentDateTom()->getHour()}:{$tournament->getTournamentDateTom()->getMinute()}</p>
+</div>
 {$htmlPageContent}
+<div class="clear"></div>
 <hr class="style-two" />
 <div id="deltagare">
 <div>

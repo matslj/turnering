@@ -49,7 +49,7 @@ $scoreBoardHtmlTable = $tManager->getScoreboardAsHtml($db);
 //
 $pageName = basename(__FILE__);
 $title          = "";
-$content 	= "";
+$content 	    = "";
 $pageId         = 0;
 
 // Get the SP names
@@ -68,6 +68,7 @@ $db->RetrieveAndStoreResultsFromMultiQuery($results);
 $row = $results[0]->fetch_object();
 if ($row) {
     $pageId     = $row->id;
+    $title      = $row->title;
     $content    = $row->content;
 }
 $results[0]->close();
@@ -101,7 +102,7 @@ $htmlMain = <<<EOD
         {$htmlPageContent}
     </p>
 EOD;
-if (!empty($htmlPageContent)) {
+if (!empty($content)) {
     $htmlMain .= "<hr class='style-two' />";
 }
 $htmlMain .= "<div class='section'>";

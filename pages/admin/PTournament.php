@@ -41,13 +41,25 @@ $needjQuery = TRUE;
 $htmlHead = <<<EOD
     <!-- jQuery UI -->
     <script src="{$js}jquery-ui/jquery-ui-1.9.2.custom.min.js"></script>
-
+        
     <!-- jQuery Form Plugin -->
     <script type='text/javascript' src='{$js}jquery-form/jquery.form.js'></script>
-    <script type='text/javascript' src='{$js}myJs/disimg-utils.js'></script>
-        
+    
     <style>
-        .errorTextField {
+        input.date {
+            width: 80px;
+        }
+        input.time {
+            width: 20px;
+        }
+        td.konfLabel {
+            width: 100px;
+        }
+        span.example {
+            font-style: italic;
+            font-size: 9px;
+        }
+        .errorMsg {
             background-color: red;
             color: white;
         }
@@ -56,118 +68,114 @@ EOD;
 
 $redirectOnSuccess = 'json';
 $javaScript = <<<EOD
+
+function isDate(input){
+    var validformat=/^\d{4}-\d{2}-\d{2}$/ //Basic check for format validity
+    var returnval=false
+    if (!validformat.test(input)) {
+        return false;
+    } else { 
+        //Detailed check for valid date ranges
+    
+        var yearfield=input.split("-")[0]
+        var monthfield=input.split("-")[1]
+        var dayfield=input.split("-")[2]
+    
+        var dayobj = new Date(yearfield, monthfield-1, dayfield)
+        if ((dayobj.getMonth()+1!=monthfield) || (dayobj.getDate()!=dayfield) || (dayobj.getFullYear()!=yearfield)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+var infoMsg = "Glöm inte att spara/uppdatera!";
+
 // ----------------------------------------------------------------------------------------------
 //
 //
 //
 (function($){
     $(document).ready(function() {
-        var createErrorMsg = function(errors) {
+
+        $("input#dateFrom").datepicker({
+            onSelect : function() {
+                $('td#info').html(infoMsg);
+            },
+            minDate: 0,
+            dateFormat: "yy-mm-dd"
+        });
+        $("input#dateTom").datepicker({
+            onSelect : function() {
+                $('td#info').html(infoMsg);
+            },
+            minDate: 0,
+            dateFormat: "yy-mm-dd"
+        });
+
+        $('#turneringForm').ajaxForm( { beforeSubmit: validate } ); 
+        
+        $('input').bind('keyup', function() {
+            $('td#info').html(infoMsg)
+        });
+    });
+    
+    function createErrorMsg(errors) {
             var retHtml = "<ul>";
             for (var i = 0; i < errors.length; i++) {
                 retHtml = retHtml + "<li>" + errors[i] + "</li>";
             }
             retHtml = retHtml + "</ul>";
             $(".errorMsg").html(retHtml);
-        };
+    }
+    
+    function validate(formData, jqForm, options) { 
+        $(".errorMsg").html('');
+        var errors = [];
+        var dateFrom = $('input[name=dateFrom]').fieldValue()[0]; 
+        var hourFrom = $('input[name=hourFrom]').fieldValue()[0];
+        var minuteFrom = $('input[name=minuteFrom]').fieldValue()[0];
+        var dateTom = $('input[name=dateTom]').fieldValue()[0]; 
+        var hourTom = $('input[name=hourTom]').fieldValue()[0];
+        var minuteTom = $('input[name=minuteTom]').fieldValue()[0];
+        var nrOfRounds = $('input[name=nrOfRounds]').fieldValue()[0];
+        var byeScore = $('input[name=byeScore]').fieldValue()[0];
+
+        if (!isDate(dateFrom, '-')) { 
+            errors.push("Ogiltigt datumformat på startdatum");
+        }
+        if (!isDate(dateTom, '-')) { 
+            errors.push("Ogiltigt datumformat på slutdatum");
+        }
         
-        var dialogOptions = {
-            validator: function(dialogId) {
-                $(".errorMsg").html('');
-                var errors = [];
-                $("#" + dialogId + " input:text").each(function() {
-                    var name = $(this).attr('name');
-                    var val = $(this).val();
-                    if (name == 'accountname') {
-                        if (!val) {
-                            errors.push("Användarnamn-fältet måste ha ett värde");
-                            $(this).addClass('errorTextField');
-                        } else {
-                            $(this).removeClass('errorTextField');
-                        }
-                    } else if (name == 'name') {
-                        if (!val) {
-                        errors.push("Namn-fältet måste ha ett värde");
-                            $(this).addClass('errorTextField');
-                        } else {
-                            $(this).removeClass('errorTextField');
-                        }
-                    }
-                });
-                if (errors.length != 0) {
-                    createErrorMsg(errors);
-                }
-                return (errors.length == 0);
-            }
-        };
+        var intRegex = /^\d+$/;
         
-        var clearErrors = function(dialogId, clearFields) {
-            $(".errorMsg").html('');
-            var element = $("#" + dialogId + " input:text").removeClass('errorTextField');
-            if (clearFields) {
-                element.val('');
-            }
+        if(!intRegex.test(hourFrom) || hourFrom < 0 || hourFrom > 23) {
+           errors.push("Felaktigt format på timmar på startdatum");
+        }
+        if(!intRegex.test(minuteFrom) || minuteFrom < 0 || minuteFrom > 59) {
+           errors.push("Felaktigt format på minuter på startdatum");
+        }
+        if(!intRegex.test(hourTom) || hourTom < 0 || hourTom > 23) {
+           errors.push("Felaktigt format på timmar på slutdatum");
+        }
+        if(!intRegex.test(minuteTom) || minuteTom < 0 || minuteTom > 59) {
+           errors.push("Felaktigt format på minuter på slutdatum");
         }
 
-        $("#dialogCreate").disimgDialog(dialogOptions);
-        $("#dialogEdit").disimgDialog(dialogOptions);
-        $("#dialogDelete").disimgDialog();
-        
-        // Declare buttons
-        $(".edit").button({
-            icons: {secondary : "ui-icon-pencil"},
-            text: false
-        }).click(function(event) {
-            var substr = $(this).attr('id').split(':');
-            $('#dialogEditUserId').val(substr[1]);
-            $('#dialogEditAccountName').val(substr[2]);
-            $('#dialogEditName').val(substr[3]);
-            $("#dialogEditArmy").val(substr[5]);
-            var tempActive = (substr[6] == '1') ? true : false;
-            $("#dialogEditActive").attr('checked', tempActive);
-            $("#dialogEdit").dialog("open");
-            clearErrors("dialogEdit", false);
-        });
-        
-        $(".delete").button({
-            icons: {secondary : "ui-icon-close"},
-            text: false
-        }).click(function(event) {
-            var substr = $(this).attr('id').split(':');
-            $('#dialogDeleteUserId').val(substr[1]);
-            $('#dialogDeleteName').html(substr[3]);
-            $('#dialogDelete').dialog("open");
-            $(".errorMsg").html('');
-        });
-        
-        var options = {
-            success:   showResponse,  // post-submit callback 
-            dataType:  "json"
-        }; 
-        // Bind to form
-        $('#form1').ajaxForm(options);
-
-        // post-submit callback 
-        function showResponse(data) {
-            $('#page_id').val(data.pageId);
-            $('p.notice').html("Saved: " + data.timestamp);
-            $('button#savenow').attr('disabled', 'disabled');
+        if(!intRegex.test(nrOfRounds)) {
+           errors.push("Antal rundor måste vara ett positivt heltal");
+        }
+        if(!intRegex.test(byeScore)) {
+           errors.push("Bye score måste vara ett positivt heltal");
         }
 
-	// ----------------------------------------------------------------------------------------------
-	//
-	// Event handler for buttons in form. Instead of messing up the html-code with javascript.
-	// Using Event bubbling as described in this document:
-	// http://docs.jquery.com/Tutorials:AJAX_and_Events
-	//
-	$('#userList').click(function(event) {
-            if ($(event.target).is('.create')) {
-                $("#dialogCreate").dialog("open");
-                clearErrors("dialogCreate", true);
-                event.preventDefault();
-            }
-	});
-    });
+        if (errors.length != 0) {
+            createErrorMsg(errors);
+            return false;
+        }
+        $('td#info').html('');
+    }
 })(jQuery);
 EOD;
 
@@ -177,9 +185,9 @@ EOD;
 // --
 $helpContent = <<<EOD
 <p>
-    Den här sidan används för att administrera användare i systemet. Det finns
-    två typer av användare: adm (administratörer) och usr (vanliga användare).
-    Det går bara att ta bort vanliga användare.
+    Här konfigurerar man vissa grundläggande data för turneringen. Om man redan har kört igång
+    en turnering, dvs börjat generera matcher, så kanske det inte är så meningsfullt att börja
+    skruva på t.ex antalet rundor.
 </p>
 EOD;
 
@@ -188,7 +196,7 @@ require_once(TP_PAGESPATH . 'admin/PHelpFragment.php');
 // -------------------- Slut Systemhjälp ----------------------
 
 $htmlMain = <<<EOD
-<h1>Användarkonton</h1>
+<h1>Turneringsdata</h1>
 {$htmlHelp}
 EOD;
 
@@ -199,20 +207,6 @@ $htmlRight = "";
 // Take care of _GET variables. Store them in a variable (if they are set).
 // Then prepare the ORDER BY SQL-statement, but only if the _GET variables has a value.
 //
-$orderBy 	= $pc->GETisSetOrSetDefault('orderby', '');
-$orderOrder 	= $pc->GETisSetOrSetDefault('order', '');
-
-$orderStr = "";
-if(!empty($orderBy) && !empty($orderOrder)) {
-    $orderStr = " ORDER BY {$orderBy} {$orderOrder}";
-}
-
-// -------------------------------------------------------------------------------------------
-//
-// Prepare the order by ref, can you figure out how it works?
-//
-$ascOrDesc = $orderOrder == 'ASC' ? 'DESC' : 'ASC';
-$httpRef = "?p=admin_anvandare&amp;order={$ascOrDesc}&orderby=";
 
 // -------------------------------------------------------------------------------------------
 //
@@ -221,142 +215,77 @@ $httpRef = "?p=admin_anvandare&amp;order={$ascOrDesc}&orderby=";
 $db 	= new CDatabaseController();
 $mysqli = $db->Connect();
 
+$tManager = new CTournamentManager();
+$tournament = $tManager->getTournament($db);
 
 // -------------------------------------------------------------------------------------------
 //
 // Prepare and perform a SQL query.
 //
-$query = $db->LoadSQL('SAdminList.php');
-$res = $db->Query($query);
+
 
 // -------------------------------------------------------------------------------------------
 //
 // Show the results of the query
 //
 
-$htmlMain .= <<< EOD
-<div id="userList">
-    <p><a href="#" id="new-user-link" class="dialog-link ui-state-default ui-corner-all create"><span class="ui-icon ui-icon-newwin create"></span>Skapa användare</a></p>
-    <table class="disImgTable" style='width: 100%;'>
-    <tr>
-    <th><a href='{$httpRef}accountUser'>Användarnamn</a></th>
-    <th><a href='{$httpRef}nameUser'>Namn</a></th>
-    <th><a href='{$httpRef}armyUser'>Armé</a></th>
-    <th><a href='{$httpRef}idGroup'>Grupp</a></th>
-    <th><a href='{$httpRef}activeUser'>Anmäld</a></th>
-    <th class='knapp' style='width: 80px;'>&nbsp;</th>
-    </tr>
-EOD;
-
-$i = 0;
-while($row = $res->fetch_object()) {
-    $activeRewrite = $row->activeUser == 1 ? "Ja" : "";
-    $htmlMain .= <<< EOD
-    <tr>
-        <td id="accountName_{$i}">{$row->accountUser}</td>
-        <td id="nameUser_{$i}">{$row->nameUser}</td>
-        <td id="armyUser_{$i}">{$row->armyUser}</td>
-        <td id="idGroup_{$i}">{$row->idGroup}</td>
-        <td id="activeUser_{$i}">{$activeRewrite}</td>
-        <td><span id="{$i}:{$row->idUser}:{$row->accountUser}:{$row->nameUser}:{$row->emailUser}:{$row->armyUser}:{$row->activeUser}" class="edit"></span>
-EOD;
-                
-if (strcmp($row->idGroup, 'adm') != 0) {
-$htmlMain .= <<< EOD
-            <span id="{$i}:{$row->idUser}:{$row->accountUser}:{$row->nameUser}" class="delete"></span>
-        </td>
-    </tr>
-EOD;
-}
-$i++;
-}
-
-$selectArmyCreate = CHTMLHelpers::getHtmlForSelectableArmies('dialogCreateArmy');
-$selectArmyEdit = CHTMLHelpers::getHtmlForSelectableArmies('dialogEditArmy');
-
 $action = "?p=" . $pc->computePage() . "p";
 $redirect = "?p=" . $pc->computePage();
+
 $htmlMain .= <<< EOD
-    </table>
-</div>
-<!-- ui-dialog create -->
-<div id="dialogCreate" title="Skapa ny användare">
-    <form id='dialogCreateForm' action='{$action}' method='POST'>
+<div id="turneringsInfo">
+    <form id='turneringForm' action='{$action}' method='POST'>
         <input type='hidden' name='redirect' value='{$redirect}'>
         <input type='hidden' name='redirect-failure' value='{$redirect}'>
-        <input type='hidden' id='dialogCreateUserId' name='accountid' value=''>
-        <input type='hidden' id='dialogCreateAction' name='action' value='create'>
-        <fieldset>
+        <input type='hidden' id='tId' name='tId' value='{$tournament->getId()}'>
             <div class="errorMsg">
             </div>
-            <p>Användarnamn används i samband med inloggning</p>
-            <table width='99%'>
+            <script>
+                console.log("hhooooooohoooo");
+                console.log("{$tournament->getTournamentDateFrom()->getDate()}");
+                console.log("{$tournament->getTournamentDateFrom()->getHour()}");
+                console.log("{$tournament->getTournamentDateFrom()->getMinute()}");
+            </script>
+            <table>
                 <tr>
-                    <td><label for="dialogCreateAccountName">Användarnamn: </label></td>
-                    <td style='text-align: right;'><input id='dialogCreateAccountName' class='name' type='text' name='accountname' value='' /></td>
+                    <td class='konfLabel'><label for="dateFrom">Start: </label></td>
+                    <td>
+                        <input id='dateFrom' class='date' type='text' name='dateFrom' value='{$tournament->getTournamentDateFrom()->getDate()}' />
+                        &nbsp;-&nbsp;
+                        <input id='hourFrom' class='time' type='text' name='hourFrom' value='{$tournament->getTournamentDateFrom()->getHour()}' maxlength='2' /> :
+                        <input id='minuteFrom' class='time' type='text' name='minuteFrom' value='{$tournament->getTournamentDateFrom()->getMinute()}' maxlength='2' />
+                        <span class='example'>(Exempel: 2013-08-20 - 09:00)</span>
+                    </td>
                 </tr>
                 <tr>
-                    <td><label for="dialogCreateName">Namn: </label></td>
-                    <td style='text-align: right;'><input id='dialogCreateName' class='name' type='text' name='name' value='' /></td>
+                    <td class='konfLabel'><label for="dateTom">Slut: </label></td>
+                    <td>
+                        <input id='dateTom' class='date' type='text' name='dateTom' value='{$tournament->getTournamentDateTom()->getDate()}' />
+                        &nbsp;-&nbsp;
+                        <input id='hourTom' class='time' type='text' name='hourTom' value='{$tournament->getTournamentDateTom()->getHour()}' maxlength='2' /> :
+                        <input id='minuteTom' class='time' type='text' name='minuteTom' value='{$tournament->getTournamentDateTom()->getMinute()}' maxlength='2' />
+                        <span class='example'>(Exempel: 2013-08-20 - 21:00)</span>
+                    </td>
                 </tr>
                 <tr>
-                    <td><label for="dialogCreateArmy">Army: </label></td>
-                    <td style='text-align: right;'>{$selectArmyCreate}</td>
+                    <td class='konfLabel'><label for="nrOfRounds">Antal rundor: </label></td>
+                    <td><input id='nrOfRounds' class='time' type='text' name='nrOfRounds' value='{$tournament->getNrOfRounds()}' maxlength='2' /></td>
                 </tr>
-                <tr colspan="2">
-                    <td><input id='dialogCreateActive' checked type="checkbox" name="active" value="true" /><label for='dialogCreateActive'>Anmäld</label></td>
+                <tr>
+                    <td class='konfLabel'><label for="byeScore">Bye score: </label></td>
+                    <td>
+                        <input id='byeScore' class='date' type='text' name='byeScore' value='{$tournament->getByeScore()}' />
+                        <span class='example'>(kompensationspoäng för spelare som måste stå över en runda)</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td><button id="updateTournament" style='margin-top: 20px;' type='submit' name='submit' value='update'>Uppdatera</button></td>
+                    <td id="info" style='padding-top: 20px;'></td>
                 </tr>
             </table>
-        </fieldset>
-    </form>
-</div>
-<!-- ui-dialog edit -->
-<div id="dialogEdit" title="Ändra användare">
-    <form id='dialogEditForm' action='{$action}' method='POST'>
-        <input type='hidden' name='redirect' value='{$redirect}'>
-        <input type='hidden' name='redirect-failure' value='{$redirect}'>
-        <input type='hidden' id='dialogEditUserId' name='accountid' value=''>
-        <input type='hidden' id='dialogEditAction' name='action' value='edit'>
-        <fieldset>
-            <div class="errorMsg">
-            </div>
-            <table width='99%'>
-                <tr>
-                    <td><label for="dialogEditAccountName">Användarnamn: </label></td>
-                    <td style='text-align: right;'><input id='dialogEditAccountName' class='name' type='text' name='accountname' value='' /></td>
-                </tr>
-                <tr>
-                    <td><label for="dialogEditName">Namn: </label></td>
-                    <td style='text-align: right;'><input id='dialogEditName' class='name' type='text' name='name' value='' /></td>
-                </tr>
-                <tr>
-                    <td><label for="dialogEditArmy">Army: </label></td>
-                    <td style='text-align: right;'>{$selectArmyEdit}</td>
-                </tr>
-                <tr colspan="2">
-                    <td><input id='dialogEditActive' type="checkbox" name="active" value="true" /><label for='dialogEditActive'>Anmäld</label></td>
-                </tr>
-            </table>
-        </fieldset>
-    </form>
-</div>
-<!-- ui-dialog delete -->
-<div id="dialogDelete" title="Radera användare">
-    <form id='dialogDeleteForm' action='{$action}' method='POST'>
-        <input type='hidden' name='redirect' value='{$redirect}'>
-        <input type='hidden' name='redirect-failure' value='{$redirect}'>
-        <input type='hidden' id='dialogDeleteUserId' name='accountid' value=''>
-        <input type='hidden' id='dialogDeleteAction' name='action' value='delete'>
-        <fieldset>
-            <p>Vill du radera den här användaren?</p>
-            <div id="dialogDeleteName"></div>
-        </fieldset>
     </form>
 </div>
 EOD;
-
-$res->close();
-
 
 // -------------------------------------------------------------------------------------------
 //

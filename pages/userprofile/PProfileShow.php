@@ -76,25 +76,12 @@ $emailUser = $row -> email;
 $idGroup = $row -> groupid;
 $nameGroup = $row -> groupname;
 $avatarUser = $row -> avatar;
+$armyUser = $row -> army;
 $gravatar = $row -> gravatar;
 $gravatarsmall = $row -> gravatarsmall;
 
-$readonly = "";
-if ($uo -> isAdmin()) {
-$readonly .= <<< EOD
-    <tr>
-        <td><label for="account">Lösenord:</label></td>
-        <td style='text-align: right;'><input class='password' type='password' name='password1'></td>
-    </tr>
-    <tr>
-        <td><label for="account">Lösenord (igen):</label></td>
-        <td style='text-align: right;'><input class='password' type='password' name='password2'></td>
-    </tr>
-    <tr>
-        <td colspan='2' style='text-align: right;'><button type='submit' name='submit' value='change-password'>Ändra lösenord</button></td>
-    </tr>
-EOD;
-}
+$log->debug("armeeee: " . $armyUser);
+$selectArmy = CHTMLHelpers::getHtmlForSelectableArmies('army', 'army', $armyUser);
 
 $action = "?p=profilep";
 $redirect = "?p=profile";
@@ -105,7 +92,7 @@ $htmlMain .= <<< EOD
 <div id="userProfile">
 
     <!-- userid and password -->
-    <h2>Användarid</h2>
+    <h2>Användarnamn och lösenord</h2>
     <form action='{$action}' method='POST'>
         <input type='hidden' name='redirect' value='{$redirect}#basic'>
         <input type='hidden' name='redirect-fail' value='{$redirect}'>
@@ -116,7 +103,17 @@ $htmlMain .= <<< EOD
                     <td><label for="account">Användarid:</label></td>
                     <td style='text-align: right;'><input class='account-dimmed' type='text' name='account' readonly value='{$accountUser}'></td>
                 </tr>
-                {$readonly}
+                <tr>
+                    <td><label for="account">Lösenord:</label></td>
+                    <td style='text-align: right;'><input class='password' type='password' name='password1'></td>
+                </tr>
+                <tr>
+                    <td><label for="account">Lösenord (igen):</label></td>
+                    <td style='text-align: right;'><input class='password' type='password' name='password2'></td>
+                </tr>
+                <tr>
+                    <td colspan='2' style='text-align: right;'><button type='submit' name='submit' value='change-password'>Ändra lösenord</button></td>
+                </tr>
             </table>
         </fieldset>
     </form>
@@ -135,6 +132,25 @@ $htmlMain .= <<< EOD
                 </tr>
                 <tr>
                     <td colspan='2' style='text-align: right;'><button type='submit' name='submit' value='change-email'>Ändra epost</button></td>
+                </tr>
+            </table>
+        </fieldset>
+    </form>
+    
+    <!-- armé -->
+    <h2 id='army'>Armé</h2>
+    <form action='{$action}' method='POST'>
+        <input type='hidden' name='redirect' value='{$redirect}#army'>
+        <input type='hidden' name='redirect-failure' value='{$redirect}'>
+        <input type='hidden' name='accountid' value='{$idUser}'>
+        <fieldset class='accountsettings'>
+            <table width='99%'>
+                <tr>
+                    <td><label for="account">Armé: </label></td>
+                    <td style='text-align: right;'>{$selectArmy}</td>
+                </tr>
+                <tr>
+                    <td colspan='2' style='text-align: right;'><button type='submit' name='submit' value='change-army'>Ändra armé</button></td>
                 </tr>
             </table>
         </fieldset>
@@ -160,31 +176,9 @@ $htmlMain .= <<< EOD
             </table>
         </fieldset>
     </form>
-    
-    <!-- gravatar -->
-    <h2 id='gravatar'>Gravatar</h2>
-    <form action='{$action}' method='POST'>
-        <input type='hidden' name='redirect' value='{$redirect}#gravatar'>
-        <input type='hidden' name='redirect-failure' value='{$redirect}'>
-        <input type='hidden' name='accountid' value='{$idUser}'>
-        <fieldset class='accountsettings'>
-        <table width='99%'>
-            <tr>
-                <td colspan='2'><p>Din Gravatar från <a href='http://gravatar.com'>gravatar.com</a></p></td>
-            </tr>
-            <tr>
-                <td><label for="gravatar">Gravatar id (epost):</label></td>
-                <td style='text-align: right;'><input class='gravatar' type='text' name='gravatar' value='{$gravatar}' placeholder="Insert gravatar id here"></td>
-            </tr>
-            <tr>
-                <td><img src='{$gravatarsmall}' alt=''></td>
-                <td style='text-align: right;'><button type='submit' name='submit' value='change-gravatar'>Ändra gravatar</button></td>
-            </tr>
-        </table>
-        </fieldset>
-    </form>
-    
 </div> <!-- div userProfile -->
+<img class='portrait' src="{$imageLink}/orc-warrior-256x256.png" alt="..." border="0" />
+<div class="clear"></div>
 </div> <!-- div userProfileWrap -->
 EOD;
 

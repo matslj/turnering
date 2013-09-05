@@ -141,9 +141,9 @@ EOD;
         // If user is not logged in, show link to login-page
         if(isset($_SESSION['accountUser'])) {
             $admHtml = "";
-            if(isset($_SESSION['groupMemberUser']) && $_SESSION['groupMemberUser'] == 'adm') {
-                $admHtml = "<a href='?p=admin'>Admin</a> ";
-            }
+//            if(isset($_SESSION['groupMemberUser']) && $_SESSION['groupMemberUser'] == 'adm') {
+//                $admHtml = "<a href='?p=admin'>Admin</a> ";
+//            }
             $htmlMenu .= <<<EOD
 <a href='?p=profile'>{$_SESSION['accountUser']}</a>
 {$admHtml}

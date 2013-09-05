@@ -72,6 +72,7 @@ define('DBSP_GetUserDetails',               DB_PREFIX . 'PGetUserDetails');
 define('DBSP_SetUserDetails',               DB_PREFIX . 'PSetUserDetails');
 define('DBSP_SetUserPassword',              DB_PREFIX . 'PSetUserPassword');
 define('DBSP_SetUserEmail',                 DB_PREFIX . 'PSetUserEmail');
+define('DBSP_SetUserArmy',                  DB_PREFIX . 'PSetUserArmy');
 define('DBSP_UpdateLastLogin',              DB_PREFIX . 'PUpdateLastLogin');
 define('DBSP_SetUserAvatar',                DB_PREFIX . 'PSetUserAvatar');
 define('DBSP_SetUserGravatar',              DB_PREFIX . 'PSetUserGravatar');
@@ -121,6 +122,7 @@ define('DBSP_DeleteAllMatchesOnRound',      DB_PREFIX . 'PDeleteAllMatchesOnRoun
 // Stored routines concerning tournament
 define('DBSP_CreateTournament',             DB_PREFIX . 'PCreateTournament');
 define('DBSP_EditTournament',               DB_PREFIX . 'PEditTournament');
+define('DBSP_EditSelectedValuesTournament', DB_PREFIX . 'PEditSelectedValuesTournament');
 define('DBSP_ChangeActiveTournament',       DB_PREFIX . 'PChangeActiveTournament');
 
 // Triggers

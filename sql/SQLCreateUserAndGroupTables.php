@@ -35,6 +35,7 @@ $spGetUserDetails = DBSP_GetUserDetails;
 $spSetUserDetails = DBSP_SetUserDetails;
 $spSetUserPassword = DBSP_SetUserPassword;
 $spSetUserEmail = DBSP_SetUserEmail;
+$spSetUserArmy = DBSP_SetUserArmy;
 $spUpdateLastLogin = DBSP_UpdateLastLogin;
 $spSetUserAvatar = DBSP_SetUserAvatar;
 $spSetUserGravatar = DBSP_SetUserGravatar;
@@ -51,9 +52,10 @@ $spDeleteMatch             = DBSP_DeleteMatch;
 $spDeleteAllMatchesOnRound = DBSP_DeleteAllMatchesOnRound;
 
 // Tournament related sps
-$spCreateTournament        = DBSP_CreateTournament;
-$spEditTournament          = DBSP_EditTournament;
-$spChangeActiveTournament  = DBSP_ChangeActiveTournament;
+$spCreateTournament             = DBSP_CreateTournament;
+$spEditTournament               = DBSP_EditTournament;
+$spEditSelectedValuesTournament = DBSP_EditSelectedValuesTournament;
+$spChangeActiveTournament       = DBSP_ChangeActiveTournament;
 
 $fCheckUserIsAdmin = DBUDF_CheckUserIsAdmin;
 
@@ -286,6 +288,29 @@ BEGIN
 END;
    
 --
+-- SP to edit a Tournament
+--
+DROP PROCEDURE IF EXISTS {$spEditSelectedValuesTournament};
+CREATE PROCEDURE {$spEditSelectedValuesTournament}
+(
+    IN aTournamentId INT,
+    IN aNrOfRounds INT,
+    IN aByeScore INT,
+    IN aDateFrom DATETIME,
+    IN aDateTom DATETIME
+)
+BEGIN
+    UPDATE {$tTournament} SET
+            roundsTournament   = aNrOfRounds,
+            byeScoreTournament = aByeScore,
+            dateFromTournament = aDateFrom,
+            dateTomTournament  = aDateTom
+    WHERE
+            idTournament = aTournamentId
+    LIMIT 1;
+END;
+   
+--
 -- SP to create a new Match
 --
 DROP PROCEDURE IF EXISTS {$spChangeActiveTournament};
@@ -486,6 +511,7 @@ BEGIN
         nameUser AS name,
         emailUser AS email,
         avatarUser AS avatar,
+        armyUser AS army,
         gravatarUser AS gravatar,
         {$fGetGravatarLinkFromEmail}(gravatarUser, 60) AS gravatarsmall,
 	GroupMember_idGroup AS groupid,
@@ -600,7 +626,24 @@ BEGIN
                 idUser = anIdUser
         LIMIT 1;
 END;
-        
+
+--
+-- SP to set user details
+--
+DROP PROCEDURE IF EXISTS {$spSetUserArmy};
+CREATE PROCEDURE {$spSetUserArmy}
+(
+        IN anIdUser INT,
+        IN anArmyUser CHAR(100)
+)
+BEGIN
+        UPDATE {$tUser} SET
+                armyUser = anArmyUser
+        WHERE
+                idUser = anIdUser
+        LIMIT 1;
+END;
+
 --
 -- SP to set user details
 --
