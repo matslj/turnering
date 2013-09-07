@@ -1,36 +1,17 @@
 <?php
 // ===========================================================================================
 //
-// SQLCreateArticleTable.php
+// SQLCreateImageAndPageTables.php
 //
-// SQL statements to create the tables for the Article tables.
+// SQL statements to create the tables for Sida (the page text editing stuff)
 //
 // WARNING: Do not forget to check input variables for SQL injections.
 //
 // Author: Mats Ljungquist
 //
 
-// File definitions
-$fileDef = Array(
-	'CSizeFileName' 	=> 256,
-	'CSizeFileNameUnique' 	=> 13, // Smallest size of PHP uniq().
-	'CSizePathToDisk' 	=> 256,
-	
-	 // Max 127 chars according http://tools.ietf.org/html/rfc4288#section-4.2
-	'CSizeMimetype'		=> 127,
-    
-        // Character encoding
-        'DefaultCharacterSet'	=> 'utf8',
-	'DefaultCollate'	=> 'utf8_unicode_ci',
-);
-
-
 // Get the tablenames
 $tSida                  = DBT_Sida;
-$tBildIntresse          = DBT_BildIntresse;
-$tBildgrupp             = DBT_Bildgrupp;
-$tFile                  = DBT_File;
-$tFolder                = DBT_Folder;
 $tUser 			        = DBT_User;
 $tGroup 		        = DBT_Group;
 $tGroupMember           = DBT_GroupMember;
@@ -40,14 +21,8 @@ $tTournament            = DBT_Tournament;
 $spPInsertOrUpdateSida	= DBSP_PInsertOrUpdateSida;
 $spPGetSidaDetails   	= DBSP_PGetSidaDetails;
 $spPGetSidaDetailsById  = DBSP_PGetSidaDetailsById;
-$spPInsertBildIntresse	= DBSP_PInsertBildIntresse;
-$spPDeleteBildIntresse	= DBSP_PDeleteBildIntresse;
-$spPInsertBildgrupp     = DBSP_PInsertBildgrupp;
-$spPListBildIntresse    = DBSP_PListBildIntresse;
-$spPListBildgrupp       = DBSP_PListBildgrupp;
 
 // Get the UDF names
-$udfFileOfInterest = DBUDF_FFileOfInterest;
 $udfFCheckUserIsOwnerOrAdminOfSida = DBUDF_FCheckUserIsOwnerOrAdmin;
 
 // Create the query
@@ -75,28 +50,6 @@ CREATE TABLE {$tSida} (
   createdSida DATETIME NOT NULL,
   modifiedSida DATETIME NULL
 );
-  
---
--- This table is used for marking interest in a picture (file)
---
-DROP TABLE IF EXISTS {$tBildIntresse};
-CREATE TABLE {$tBildIntresse} (
-  -- Foreign keys
-  BildIntresse_idUser INT NOT NULL,
-  FOREIGN KEY (BildIntresse_idUser) REFERENCES {$tUser}(idUser),
-  BildIntresse_idFile INT NOT NULL,
-  FOREIGN KEY (BildIntresse_idFile) REFERENCES {$tFile}(idFile),
-
-  PRIMARY KEY (BildIntresse_idUser, BildIntresse_idFile),
-  
-  dateBildIntresse DATETIME NOT NULL
-
-) ENGINE MyISAM CHARACTER SET {$fileDef['DefaultCharacterSet']} COLLATE {$fileDef['DefaultCollate']};
-  
---
--- This table is used for grouping images for a certain user.
---
-DROP TABLE IF EXISTS {$tBildgrupp};
 
 --
 -- SP to insert or update article
@@ -218,86 +171,6 @@ BEGIN
 		A.idSida = aPageId
         LIMIT 1;
 END;
-                
---
--- SP to insert bildintresse
--- If article id is 0 then insert, else update
---
-DROP PROCEDURE IF EXISTS {$spPInsertBildIntresse};
-CREATE PROCEDURE {$spPInsertBildIntresse}
-(
-	IN aUserId INT,
-	IN aFileId INT
-)
-BEGIN
-        INSERT INTO {$tBildIntresse}
-                (BildIntresse_idUser, BildIntresse_idFile, dateBildIntresse)
-        VALUES (aUserId, aFileId, NOW());
-END;
-
--- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
---
--- SP to delete the connection between File and user
---
-DROP PROCEDURE IF EXISTS {$spPDeleteBildIntresse};
-CREATE PROCEDURE {$spPDeleteBildIntresse}
-(
-    IN aUserId INT,
-    IN aFileId INT
-)
-BEGIN
-    DELETE FROM {$tBildIntresse}
-    WHERE BildIntresse_idFile = aFileId
-          AND BildIntresse_idUser = aUserId;
-END;
-        
---
--- SP to list bildintresse
---
-DROP PROCEDURE IF EXISTS {$spPListBildIntresse};
-CREATE PROCEDURE {$spPListBildIntresse}
-(
-	IN aUserId INT
-)
-BEGIN
-        SELECT
-            BildIntresse_idFile AS idFile,
-            dateBildIntresse AS date
-        FROM {$tBildIntresse}
-        WHERE
-            BildIntresse_idUser = aUserId
-        ;
-END;
-
--- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
---
--- Checks if a user is interested in a particular file.
---
--- Return values:
---  1 if there is an interest
---  0 if no interest can be found
---
-DROP FUNCTION IF EXISTS {$udfFileOfInterest};
-CREATE FUNCTION {$udfFileOfInterest}
-(
-	aUserId INT,
-        aFileId INT
-)
-RETURNS INT UNSIGNED
-READS SQL DATA
-BEGIN
-	DECLARE i INT UNSIGNED;
-
-	-- User has bildintresse?
-	SELECT COUNT(BildIntresse_idFile) INTO i FROM {$tBildIntresse}
-	WHERE
-            BildIntresse_idUser = aUserId
-            AND BildIntresse_idFile = aFileId;
-        IF i > 0 THEN
-            RETURN 1;
-	END IF;
-	RETURN 0;
-END;
 
 --
 --  Create UDF that checks if user owns article or is member of group adm.
@@ -341,7 +214,7 @@ END;
 --
 
 SET @aSidaId = 0;
-CALL {$spPInsertOrUpdateSida}(@aSidaId, 2, 'PIndex.php', 'Battle på DMF!!', 'Stor strid med massor av stuff', 0);
+CALL {$spPInsertOrUpdateSida}(@aSidaId, 2, 'PIndex.php', 'Battle på DMF!!', 'Test-text som admin kan ändra. Alla icke admin-titlar går också att ändra.', 0);
 SET @aSidaId = 0;
 CALL {$spPInsertOrUpdateSida}(@aSidaId, 2, 'PAdminIndex.php', 'Ändra mig', 'Ändra mig', 0);
 

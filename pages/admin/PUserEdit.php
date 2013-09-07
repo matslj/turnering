@@ -45,6 +45,13 @@ $pc->IsNumericOrDie($user, 0);
 $db = new CDatabaseController();
 $mysqli = $db->Connect();
 
+// Get user-object
+$uo = CUserData::getInstance();
+$okToChangeAdmin = WS_CHANGE_PASSWORD_ON_ADMIN;
+if ($uo->isAdmin() && !$okToChangeAdmin && strcmp($uo->getAccount(), $accountName) != 0) {
+    $_SESSION['errorMessage']	= "Den här applikationen har blivit konfigurerad till att inte acceptera förändring av adminusername";
+} else {
+
 // Sanitize data
 if ($accountName != null) {
     $accountName = $mysqli->real_escape_string($accountName);
@@ -76,6 +83,7 @@ if (strcmp($action, 'edit') == 0) {
     $query = "CALL {$spDeleteUser}({$user});";
 } else {
     die("Bad command. Very bad.");
+}
 }
 
 // Errors exist - Exit back to the userlist page

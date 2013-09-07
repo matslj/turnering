@@ -13,19 +13,19 @@
 // Settings for this website (WS), some used as default values in CHTMPLPage.php
 //
 define('WS_MELINK',     'http://localhost/dbwebb2/me/');          // Link to me pages.
-define('WS_SITELINK',   'http://localhost/turnering/');              // Link to site.
-define('WS_TITLE', 	'DMF-turnering');		                  // The title of this site.
+define('WS_SITELINK',   'http://localhost/turnering/');           // Link to site.
+define('WS_TITLE', 	    'DMF-turnering');		                  // The title of this site.
 define('WS_SUB_TITLE',  'i Warhammer fantasy battle');
 define('WS_STYLESHEET', 'style/plain/stylesheet_liquid.css');	  // Default stylesheet of the site.
 define('WS_FAVICON', 	'img/favicon.ico');                       // Small icon to display in browser
-define('WS_FOOTER', 	'&copy; 2013 by ML - version 0.1'); // Footer at the end of the page.
+define('WS_FOOTER', 	'&copy; 2013 by ML - version 0.1');       // Footer at the end of the page.
 define('WS_VALIDATORS', FALSE);	                                  // Show links to w3c validators tools.
-define('WS_TIMER', 	TRUE);                                    // Time generation of a page and display in footer.
+define('WS_TIMER',   	TRUE);                                    // Time generation of a page and display in footer.
 define('WS_CHARSET', 	'utf-8');                                 // Use this charset
 define('WS_LANGUAGE', 	'sv');                                    // Default language
-define('WS_IMAGES',	WS_SITELINK . 'img/');                    // Relative path to site image folder
+define('WS_IMAGES',	    WS_SITELINK . 'img/');                    // Relative path to site image folder
 define('WS_JAVASCRIPT',	WS_SITELINK . 'js/');	                  // Relative path to site JavaScript code
-define('WS_HOME',	'home');	                          // Starting page
+define('WS_HOME',	    'home');	                              // Starting page
 
 
 // The logging system
@@ -42,12 +42,7 @@ define('WS_LOGGER',	'file');
 // * No captcha (commented away) - the same as 'dummy'
 define('WS_CAPTCHA',	'dummy');
 
-// File handling
-define('FILE_ARCHIVE_FOLDER', 'uploads');
-//define('FILE_ARCHIVE_PATH', 'c:\wamp\www\disimg\\' . FILE_ARCHIVE_FOLDER); // Must be writable by webserver
-define('FILE_ARCHIVE_PATH', '/var/www/disimg/' . FILE_ARCHIVE_FOLDER);       // Must be writable by webserver
-define('FILE_MAX_SIZE', 6000000);                                            // Filesize in bytes
-define('FILE_ACTION' , '?p=uploadp');	                                     // JavaScript code
+define('WS_CHANGE_PASSWORD_ON_ADMIN', false);
 
 // -------------------------------------------------------------------------------------------
 //

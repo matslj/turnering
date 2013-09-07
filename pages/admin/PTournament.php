@@ -1,9 +1,11 @@
 <?php
 // -------------------------------------------------------------------------------------------
 //
-// PUsersList.php
+// PTournament.php
 //
-// Show all users in a list.
+// Handles the configuration of a tournament.
+// 
+// Author: Mats Ljungquist
 //
 
 // -------------------------------------------------------------------------------------------
@@ -27,13 +29,6 @@ $intFilter->UserIsMemberOfGroupAdminOrDie();
 
 // -------------------------------------------------------------------------------------------
 //
-// Take care of global pageController settings, can exist for several pagecontrollers.
-// Decide how page is displayed, review CHTMLPage for supported types.
-//
-$displayAs = $pc->GETisSetOrSetDefault('pc_display', '');
-
-// -------------------------------------------------------------------------------------------
-//
 // Page specific code
 //
 $js = WS_JAVASCRIPT;
@@ -44,6 +39,7 @@ $htmlHead = <<<EOD
         
     <!-- jQuery Form Plugin -->
     <script type='text/javascript' src='{$js}jquery-form/jquery.form.js'></script>
+    <script type='text/javascript' src='{$js}myJs/tournament.js'></script>
     
     <style>
         input.date {
@@ -66,116 +62,11 @@ $htmlHead = <<<EOD
     </style>
 EOD;
 
-$redirectOnSuccess = 'json';
 $javaScript = <<<EOD
-
-function isDate(input){
-    var validformat=/^\d{4}-\d{2}-\d{2}$/ //Basic check for format validity
-    var returnval=false
-    if (!validformat.test(input)) {
-        return false;
-    } else { 
-        //Detailed check for valid date ranges
-    
-        var yearfield=input.split("-")[0]
-        var monthfield=input.split("-")[1]
-        var dayfield=input.split("-")[2]
-    
-        var dayobj = new Date(yearfield, monthfield-1, dayfield)
-        if ((dayobj.getMonth()+1!=monthfield) || (dayobj.getDate()!=dayfield) || (dayobj.getFullYear()!=yearfield)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-var infoMsg = "Glöm inte att spara/uppdatera!";
-
-// ----------------------------------------------------------------------------------------------
-//
-//
-//
 (function($){
     $(document).ready(function() {
-
-        $("input#dateFrom").datepicker({
-            onSelect : function() {
-                $('td#info').html(infoMsg);
-            },
-            minDate: 0,
-            dateFormat: "yy-mm-dd"
-        });
-        $("input#dateTom").datepicker({
-            onSelect : function() {
-                $('td#info').html(infoMsg);
-            },
-            minDate: 0,
-            dateFormat: "yy-mm-dd"
-        });
-
-        $('#turneringForm').ajaxForm( { beforeSubmit: validate } ); 
-        
-        $('input').bind('keyup', function() {
-            $('td#info').html(infoMsg)
-        });
+        tournament.config.init();
     });
-    
-    function createErrorMsg(errors) {
-            var retHtml = "<ul>";
-            for (var i = 0; i < errors.length; i++) {
-                retHtml = retHtml + "<li>" + errors[i] + "</li>";
-            }
-            retHtml = retHtml + "</ul>";
-            $(".errorMsg").html(retHtml);
-    }
-    
-    function validate(formData, jqForm, options) { 
-        $(".errorMsg").html('');
-        var errors = [];
-        var dateFrom = $('input[name=dateFrom]').fieldValue()[0]; 
-        var hourFrom = $('input[name=hourFrom]').fieldValue()[0];
-        var minuteFrom = $('input[name=minuteFrom]').fieldValue()[0];
-        var dateTom = $('input[name=dateTom]').fieldValue()[0]; 
-        var hourTom = $('input[name=hourTom]').fieldValue()[0];
-        var minuteTom = $('input[name=minuteTom]').fieldValue()[0];
-        var nrOfRounds = $('input[name=nrOfRounds]').fieldValue()[0];
-        var byeScore = $('input[name=byeScore]').fieldValue()[0];
-
-        if (!isDate(dateFrom, '-')) { 
-            errors.push("Ogiltigt datumformat på startdatum");
-        }
-        if (!isDate(dateTom, '-')) { 
-            errors.push("Ogiltigt datumformat på slutdatum");
-        }
-        
-        var intRegex = /^\d+$/;
-        
-        if(!intRegex.test(hourFrom) || hourFrom < 0 || hourFrom > 23) {
-           errors.push("Felaktigt format på timmar på startdatum");
-        }
-        if(!intRegex.test(minuteFrom) || minuteFrom < 0 || minuteFrom > 59) {
-           errors.push("Felaktigt format på minuter på startdatum");
-        }
-        if(!intRegex.test(hourTom) || hourTom < 0 || hourTom > 23) {
-           errors.push("Felaktigt format på timmar på slutdatum");
-        }
-        if(!intRegex.test(minuteTom) || minuteTom < 0 || minuteTom > 59) {
-           errors.push("Felaktigt format på minuter på slutdatum");
-        }
-
-        if(!intRegex.test(nrOfRounds)) {
-           errors.push("Antal rundor måste vara ett positivt heltal");
-        }
-        if(!intRegex.test(byeScore)) {
-           errors.push("Bye score måste vara ett positivt heltal");
-        }
-
-        if (errors.length != 0) {
-            createErrorMsg(errors);
-            return false;
-        }
-        $('td#info').html('');
-    }
 })(jQuery);
 EOD;
 
@@ -218,11 +109,7 @@ $mysqli = $db->Connect();
 $tManager = new CTournamentManager();
 $tournament = $tManager->getTournament($db);
 
-// -------------------------------------------------------------------------------------------
-//
-// Prepare and perform a SQL query.
-//
-
+$mysqli->close();
 
 // -------------------------------------------------------------------------------------------
 //
@@ -240,12 +127,6 @@ $htmlMain .= <<< EOD
         <input type='hidden' id='tId' name='tId' value='{$tournament->getId()}'>
             <div class="errorMsg">
             </div>
-            <script>
-                console.log("hhooooooohoooo");
-                console.log("{$tournament->getTournamentDateFrom()->getDate()}");
-                console.log("{$tournament->getTournamentDateFrom()->getHour()}");
-                console.log("{$tournament->getTournamentDateFrom()->getMinute()}");
-            </script>
             <table>
                 <tr>
                     <td class='konfLabel'><label for="dateFrom">Start: </label></td>
@@ -289,14 +170,6 @@ EOD;
 
 // -------------------------------------------------------------------------------------------
 //
-// Close the connection to the database
-//
-
-$mysqli->close();
-
-
-// -------------------------------------------------------------------------------------------
-//
 // Create and print out the resulting page
 //
 require_once(TP_SOURCEPATH . 'CHTMLPage.php');
@@ -306,8 +179,7 @@ $page = new CHTMLPage(WS_STYLESHEET);
 // Creating the left menu panel
 $htmlLeft = ""; // $page ->PrepareLeftSideNavigationBar(ADMIN_MENU_NAVBAR, "Admin - undermeny");
 
-// $page->printPage($htmlLeft, $htmlMain, $htmlRight, '', $displayAs);
-$page->printPage('Användare', $htmlLeft, $htmlMain, $htmlRight, $htmlHead, $javaScript, $needjQuery);
+$page->printPage('Turneringsdata', $htmlLeft, $htmlMain, $htmlRight, $htmlHead, $javaScript, $needjQuery);
 exit;
 
 ?>

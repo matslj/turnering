@@ -5,7 +5,7 @@
 //
 // Generate a 404 header and print message, should also logg into database.
 //
-// Author: Mikael Roos, mos@bth.se
+// Author: Mats Ljungquist
 //
 
 

@@ -1,9 +1,9 @@
 <?php
 // ===========================================================================================
 //
-// File: PPairingOfMatches.php
+// File: PScoreboard.php
 //
-// Description: Sets up the matches.
+// Description: Presents a scoreboard on current development in the tournament.
 //
 // Author: Mats Ljungquist
 //
@@ -12,26 +12,10 @@
 
 // -------------------------------------------------------------------------------------------
 //
-// Get pagecontroller helpers. Useful methods to use in most pagecontrollers
-//
-$pc = CPageController::getInstance();
-//$pc->LoadLanguage(__FILE__);
-
-// -------------------------------------------------------------------------------------------
-//
 // Interception Filter, controlling access, authorithy and other checks.
 //
 $intFilter = new CInterceptionFilter();
-
 $intFilter->FrontControllerIsVisitedOrDie();
-
-// -------------------------------------------------------------------------------------------
-//
-// Take care of _GET/_POST variables. Store them in a variable (if they are set).
-//
-
-$redirect = "?p=" . $pc->computePage();
-$action = $redirect . "p";
 
 // -------------------------------------------------------------------------------------------
 //
@@ -88,9 +72,6 @@ require_once(TP_PAGESPATH . 'page/PPageEditDialog.php');
 // Close DB connection
 //
 $mysqli->close();
-
-// Link to images
-$imageLink = WS_IMAGES;
 
 // -------------------------------------------------------------------------------------------
 //

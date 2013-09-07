@@ -176,7 +176,7 @@ $htmlRight	= "";
 //
 $page = new CHTMLPage();
 
-$page->printPage('Sommarturnering - DMF', $htmlLeft, $htmlMain, $htmlRight, $htmlHead, $javaScript, $needjQuery);
+$page->printPage('Turnering - DMF', $htmlLeft, $htmlMain, $htmlRight, $htmlHead, $javaScript, $needjQuery);
 exit;
 
 ?>

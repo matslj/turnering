@@ -1,9 +1,9 @@
 <?php
 // ===========================================================================================
 //
-// File: PFileUploadProcess.php
+// File: PPairingOfMatchesProcess.php
 //
-// Description: Upload and store files in the users file archive.
+// Description: Handles ajax calls on updating scores.
 //
 // Author: Mats Ljungquist
 //

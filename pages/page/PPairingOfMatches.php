@@ -39,8 +39,6 @@ $action = $redirect . "p";
 $actionProcess = $redirect. "ap";
 
 $uo = CUserData::getInstance();
-$account = $uo -> getAccount();
-$userId	= $uo -> getId();
 $admin = $uo-> isAdmin();
 
 // $log -> debug("userid: " . $userId);
@@ -57,24 +55,6 @@ $mysqli = $db->Connect();
 $tManager = new CTournamentManager();
 $tournament = $tManager->getTournament($db);
 $tournamentHtml = $tManager->getTournamentMatchupsAsHtml($db, $admin);
-
-//$query 	= $uo -> isAdmin() ? "CALL {$spListFolders}('')" : "CALL {$spListFolders}({$userId})";
-//$res = $db->MultiQuery($query);
-//$results = Array();
-//$db->RetrieveAndStoreResultsFromMultiQuery($results);
-//
-//while($row = $results[0]->fetch_object()) {
-//    $total = $total + $row->facet;
-//    $classSelected = "";
-//    if ($row->id == $folderFilter) {
-//        $currentFolderName = $row->name;
-//        $currentTotal = $row->facet;
-//        $classSelected = " selected";
-//    }
-//    $folderHtml .= "<div class='row{$classSelected}'><a href='{$redirect}&ff={$row->id}'>{$row->name} ({$row->facet})</a></div>";
-//}
-
-//$results[0]->close();
 
 $htmlHead = "";
 $javaScript = "";
@@ -143,122 +123,14 @@ $htmlHead .= <<<EOD
 
     <!-- jQuery Form Plugin -->
     <script type='text/javascript' src='{$js}jquery-form/jquery.form.js'></script>
-    <script type='text/javascript' src='{$js}myJs/disimg-utils.js'></script>
+    <script type='text/javascript' src='{$js}myJs/tournament.js'></script>
 EOD;
 
 $javaScript .= <<<EOD
-// ----------------------------------------------------------------------------------------------
-//
-//
-//
-var nLink = "{$nextLink}";
-
 (function($){
     $(document).ready(function() {
-        $('input#saveScoreButton').attr('disabled', 'disabled');
-    
-        // Event declaration
-        $('#saveScoreButton').click(function(event) {
-            $(event.target).attr('disabled', 'disabled');
-            $('span#info').html('');
-            if (isComplete()) {
-                $("#scoreSubmitDiv").html(nLink);
-            } else {
-                $("#scoreSubmitDiv").html("");
-            }
-            saveScores();
-        });
-        
-        $('input.scoreInput').bind('keyup', function() {
-            if (isComplete() && !$('span#info').html()) {
-                $("#scoreSubmitDiv").html(nLink);
-            } else {
-                $("#scoreSubmitDiv").html("");
-            }
-            $('input#saveScoreButton').removeAttr('disabled');
-            $('span#info').html('Resultat har ändrats, glöm inte att spara!')
-        });
+        tournament.matches.init("{$nextLink}", '{$action}');
     });
-    
-    function isComplete() {
-        var allTrue = true;
-        var minKey = -1,
-            maxKey = -1;
-        var targetArray = [];
-        $(".round input:text").each(function() {
-            var inpId = $(this).attr("id");
-            var index = inpId.indexOf("#");
-            var key = inpId.substring(index + 1);
-            if (minKey < 0 || key < minKey) {
-                minKey = key;
-            }
-            if (maxKey < 0 || key > maxKey) {
-                maxKey = key;
-            }
-            var inpVal = parseInt($(this).val(), 10);
-            if (isNaN(inpVal)) {
-                inpVal = 0;
-            }
-            
-            if (!(key in targetArray)) {
-                targetArray[key] = 0;
-            }
-            targetArray[key] = inpVal + targetArray[key];
-            
-        });
-        
-        for (var i = minKey; i <= maxKey; i++) {
-            if (targetArray[i] == '' || targetArray[i] == 0) {
-                allTrue = false;
-            }
-        }
-//        console.log("minkey: " + minKey);
-//        console.log("maxkey: " + maxKey);
-//        console.log(targetArray.length);
-        return allTrue;
-    }
-    
-    function saveScores() {
-
-        var scoreList = {};
-        $('input.scoreInput').each( function() {
-            var tempId = $(this).attr('id');
-            var indexOfHashmark = tempId.indexOf('#');
-            var player = tempId.substring(0, indexOfHashmark);
-            var matchId = tempId.substring(indexOfHashmark + 1);
-            
-            if (typeof scoreList[matchId] === "undefined") {
-                scoreList[matchId] = {};
-                scoreList[matchId]['matchId'] = matchId;
-            }
-            
-            scoreList[matchId][player] = $(this).val();
-        });
-        
-        var revisedScoreList = [];
-        for (var key in scoreList) {
-            if (scoreList.hasOwnProperty(key)) {
-               revisedScoreList.push(scoreList[key]);
-            }
-        }
-        
-        var jsonScore = JSON.stringify(revisedScoreList);
-
-        // Förbered Ajax-call
-        $.ajax({
-            url:'{$action}',
-            type:'POST',
-            dataType: "json",
-            data: {"scores":jsonScore},
-            success: function(data) {
-                if (data.status == 'ok') {
-                    console.log("klar!!");
-                } else {
-                    console.log(data.message);
-                }
-            }
-        });
-    }
 })(jQuery);
 EOD;
             

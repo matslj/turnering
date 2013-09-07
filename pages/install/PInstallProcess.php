@@ -5,7 +5,7 @@
 //
 // Executes SQL statments in database, displays the results.
 //
-// Author: Mikael Roos
+// Author: Mats Ljungquist
 //
 
 
@@ -49,7 +49,7 @@ $mysqli = $db->Connect();
 //
 // Execute several queries and print out the result.
 //
-$queries = Array('SQLCreateUserAndGroupTables.php', 'SQLCoreFile.php', 'SQLCreateImageAndPageTables.php');
+$queries = Array('SQLCreateUserAndGroupTables.php', 'SQLCreateImageAndPageTables.php');
 
 foreach($queries as $val) {
 

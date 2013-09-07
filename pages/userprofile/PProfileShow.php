@@ -4,6 +4,8 @@
 // PProfileShow.php
 //
 // Show the users profile information in a form and make it possible to edit the information.
+// 
+// Author: Mats Ljungquist
 //
 
 $log = logging_CLogger::getInstance(__FILE__);
@@ -198,7 +200,7 @@ require_once(TP_SOURCEPATH . 'CHTMLPage.php');
 
 $page = new CHTMLPage(WS_STYLESHEET);
 
-$page->printPage("Your account", $htmlLeft, $htmlMain, $htmlRight);
+$page->printPage("Ditt konto", $htmlLeft, $htmlMain, $htmlRight);
 exit;
 
 ?>

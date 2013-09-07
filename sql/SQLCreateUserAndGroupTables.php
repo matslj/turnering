@@ -13,13 +13,7 @@
 $imageLink = WS_IMAGES;
 
 // Get the tablenames
-$tSida                  = DBT_Sida;
-$tBildIntresse          = DBT_BildIntresse;
-$tBildgrupp             = DBT_Bildgrupp;
-$tFile                  = DBT_File;
-$tFolderUser            = DBT_FolderUser;
-$tFolder                = DBT_Folder;
-$tArticle 		= DBT_Article;
+$tSida          = DBT_Sida;
 $tMatch         = DBT_Match;
 $tTournament    = DBT_Tournament;
 $tUser 			= DBT_User;
@@ -64,12 +58,6 @@ $fGetGravatarLinkFromEmail = DBUDF_GetGravatarLinkFromEmail;
 // Create the query
 $query = <<<EOD
 DROP TABLE IF EXISTS {$tStatistics};
-DROP TABLE IF EXISTS {$tArticle};
-DROP TABLE IF EXISTS {$tBildIntresse};
-DROP TABLE IF EXISTS {$tBildgrupp};
-DROP TABLE IF EXISTS {$tFile};
-DROP TABLE IF EXISTS {$tFolderUser};
-DROP TABLE IF EXISTS {$tFolder};
 DROP TABLE IF EXISTS {$tSida};
 
 DROP TABLE IF EXISTS {$tMatch};
@@ -784,26 +772,28 @@ END;
 -- Add default user(s)
 --
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
-VALUES ('mats', 'mats@noreply.se', 'Mats Lj', NOW(), md5('hemligt'), '{$imageLink}/man_60x60.png', 'Vampire Counts', TRUE);
+VALUES ('admin', 'admin@noreply.se', 'Mr Admin', NOW(), md5('admin'), '{$imageLink}woman_60x60.png', '', FALSE);
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
-VALUES ('doe', 'doe@bth.se', 'John/Jane Doe', NOW(), md5('DIS1000'), '{$imageLink}/woman_60x60.png', 'Skaven', TRUE);
+VALUES ('Hobbylim', 'mats@noreply.se', 'Mats Ljungquist', NOW(), md5('Hobbylim'), '{$imageLink}man_60x60.png', 'Vampire Counts', TRUE);
+INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
+VALUES ('doe', 'doe@noreply.se', 'John/Jane Doe', NOW(), md5('doe'), '{$imageLink}man_60x60.png', 'Skaven', TRUE);
     
 
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
-VALUES ('Akbar', 'akbar@noreply.se', 'Anders Lindblad', NOW(), md5('Akbar'), '{$imageLink}/man_60x60.png', 'Empire', TRUE);
+VALUES ('Akbar', 'akbar@noreply.se', 'Anders Lindblad', NOW(), md5('Akbar'), '{$imageLink}man_60x60.png', 'Empire', TRUE);
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
-VALUES ('Jonatan', 'jonathan@noreply.se', 'Jonatan Viklund', NOW(), md5('Jonatan'), '{$imageLink}/woman_60x60.png', 'Lizardmen', TRUE);
+VALUES ('Jonatan', 'jonathan@noreply.se', 'Jonatan Viklund', NOW(), md5('Jonatan'), '{$imageLink}man_60x60.png', 'Lizardmen', TRUE);
     
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
-VALUES ('Svullom', 'svullom@noreply.se', 'Alexander Larsson', NOW(), md5('Svullom'), '{$imageLink}/man_60x60.png', 'Skaven', TRUE);
+VALUES ('Svullom', 'svullom@noreply.se', 'Alexander Larsson', NOW(), md5('Svullom'), '{$imageLink}man_60x60.png', 'Skaven', TRUE);
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
-VALUES ('Echunia', 'echunia@noreply.se', 'Casimir Ehrenborg', NOW(), md5('Echunia'), '{$imageLink}/man_60x60.png', 'Tomb Kings', TRUE);
+VALUES ('Echunia', 'echunia@noreply.se', 'Casimir Ehrenborg', NOW(), md5('Echunia'), '{$imageLink}man_60x60.png', 'Tomb Kings', TRUE);
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
-VALUES ('Hugo', 'hugo@noreply.se', 'Hugo Nordland', NOW(), md5('Hugo'), '{$imageLink}/man_60x60.png', 'High Elves', TRUE);
+VALUES ('Hugo', 'hugo@noreply.se', 'Hugo Nordland', NOW(), md5('Hugo'), '{$imageLink}man_60x60.png', 'High Elves', TRUE);
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
-VALUES ('Gustav', 'gustav@noreply.se', 'Gustav Weberup', NOW(), md5('Gustav'), '{$imageLink}/man_60x60.png', 'High Elves', TRUE);
+VALUES ('Gustav', 'gustav@noreply.se', 'Gustav Weberup', NOW(), md5('Gustav'), '{$imageLink}man_60x60.png', 'High Elves', TRUE);
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
-VALUES ('TiburtiusMarkus', 'tiburtiusmarkus@noreply.se', 'Bertil Persson', NOW(), md5('TiburtiusMarkus'), '{$imageLink}/man_60x60.png', 'Warriors of Chaos', TRUE);
+VALUES ('TiburtiusMarkus', 'tiburtiusmarkus@noreply.se', 'Bertil Persson', NOW(), md5('TiburtiusMarkus'), '{$imageLink}man_60x60.png', 'Warriors of Chaos', TRUE);
 
 --
 -- Add default groups
@@ -816,9 +806,11 @@ INSERT INTO {$tGroup} (idGroup, nameGroup) VALUES ('usr', 'Regular users of the 
 -- Add default groupmembers
 --
 INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
+	VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'admin'), 'adm');
+INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
 	VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'doe'), 'usr');
 INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
-	VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'mats'), 'adm');
+	VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'Hobbylim'), 'usr');
 INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
 	VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'Akbar'), 'usr');
 INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)

@@ -31,37 +31,14 @@ define('DBT_User', 		    DB_PREFIX . 'User');
 define('DBT_Group', 		DB_PREFIX . 'Group');
 define('DBT_GroupMember',	DB_PREFIX . 'GroupMember');
 define('DBT_Statistics',	DB_PREFIX . 'Statistics');
-define('DBT_Article',		DB_PREFIX . 'Article');
-define('DBT_BildIntresse',	DB_PREFIX . 'BildIntresse');
-define('DBT_Bildgrupp',		DB_PREFIX . 'Bildgrupp');
-define('DBT_File', 		    DB_PREFIX . 'File');
-define('DBT_Folder', 		DB_PREFIX . 'Folder');
-define('DBT_FolderUser',	DB_PREFIX . 'FolderUser');
 define('DBT_Sida',		    DB_PREFIX . 'Sida');
 define('DBT_Match',		    DB_PREFIX . 'Match');
 define('DBT_Tournament',	DB_PREFIX . 'Tournament');
-
-
-// Stored routines concerning articles/posts
-define('DBSP_PGetArticleDetailsAndArticleList', DB_PREFIX . 'PGetArticleDetailsAndArticleList');
-define('DBSP_PGetArticleDetails',			    DB_PREFIX . 'PGetArticleDetails');
-define('DBSP_PInsertOrUpdateArticle',			DB_PREFIX . 'PInsertOrUpdateArticle');
-define('DBSP_PGetLatestTopicsList',			    DB_PREFIX . 'PGetLatestTopicsList');
-define('DBSP_PGetTopicDetailsAndPosts',			DB_PREFIX . 'PGetTopicDetailsAndPosts');
-define('DBSP_PGetTopicFirstEntryDetails',		DB_PREFIX . 'PGetTopicFirstEntryDetails');
-define('DBSP_PGetTopicLastEntryDetails',		DB_PREFIX . 'PGetTopicLastEntryDetails');
-define('DBSP_PGetArticleAndTopicDetails',		DB_PREFIX . 'PGetArticleAndTopicDetails');
 
 // Stored routines concerning page and pictures
 define('DBSP_PInsertOrUpdateSida',	           DB_PREFIX . 'PInsertOrUpdateSida');
 define('DBSP_PGetSidaDetails',		           DB_PREFIX . 'PGetSidaDetails');
 define('DBSP_PGetSidaDetailsById',	           DB_PREFIX . 'PGetSidaDetailsById');
-define('DBSP_PInsertBildIntresse',	           DB_PREFIX . 'PInsertBildIntresse');
-define('DBSP_PDeleteBildIntresse',	           DB_PREFIX . 'PDeleteBildIntresse');
-define('DBSP_PInsertBildgrupp',		           DB_PREFIX . 'PInsertBildgrupp');
-define('DBSP_PListBildIntresse',	           DB_PREFIX . 'PListBildIntresse');
-define('DBSP_PListBildgrupp',		           DB_PREFIX . 'PListBildgrupp');
-define('DBUDF_FFileOfInterest',	               DB_PREFIX . 'FFileOfInterest');
 define('DBUDF_FCheckUserIsOwnerOrAdminOfSida', DB_PREFIX . 'FCheckUserIsOwnerOrAdminOfSida');
 define('DBUDF_CheckUserIsAdmin',	           DB_PREFIX . 'FCheckUserIsAdmin');
 
@@ -83,35 +60,6 @@ define('DBSP_SetTournamentUser',            DB_PREFIX . 'PSetTournamentUser');
 define('DBSP_CreateUserAccountOrEmail',     DB_PREFIX . 'PCreateUserAccountOrEmail');
 define('DBSP_CreateUserAccountTournament',  DB_PREFIX . 'PCreateUserAccountTournament');
 define('DBSP_DeleteUser',                   DB_PREFIX . 'PDeleteUser');
-
-// Stored routines concering file
-define('DBSP_InsertFile',                   DB_PREFIX . 'PInsertFile');
-define('DBSP_FileUpdateUniqueName',         DB_PREFIX . 'PFileUpdateUniqueName');
-define('DBSP_FileDetails',                  DB_PREFIX . 'PFileDetails');
-define('DBSP_FileByIdDetails',              DB_PREFIX . 'PFileByIdDetails');
-define('DBSP_FileDetailsUpdate',            DB_PREFIX . 'PFileDetailsUpdate');
-define('DBSP_ListFiles',                    DB_PREFIX . 'PListFiles');
-define('DBSP_ListFilesInFolder',            DB_PREFIX . 'PListFilesInFolder');
-define('DBSP_ListFilesXXX',                 DB_PREFIX . 'PListFilesXXX');
-define('DBSP_ListFilesInFolderXXX',         DB_PREFIX . 'PListFilesInFolderXXX');
-define('DBSP_UseReferenceToListFiles',      DB_PREFIX . 'PUseReferenceToListFiles');
-define('DBSP_FileDetailsDeleted',           DB_PREFIX . 'PFileDetailsDeleted');
-define('DBUDF_FileCheckPermission',         DB_PREFIX . 'FFileCheckPermission');
-define('DBUDF_FileDelete',                  DB_PREFIX . 'FFileDelete');
-
-// Stored routines concering folders
-define('DBSP_InsertFolder',                 DB_PREFIX . 'PInsertFolder');
-define('DBSP_InsertFolderUser',             DB_PREFIX . 'PInsertFolderUser');
-define('DBSP_ListFolders',                  DB_PREFIX . 'PListFolders');
-define('DBSP_ListFoldersByUser',            DB_PREFIX . 'PListFoldersByUser');
-define('DBSP_ListFoldersByUserOnly',        DB_PREFIX . 'PListFoldersByUserOnly');
-define('DBSP_ListAllAccessedFiles',         DB_PREFIX . 'PListAllAccessedFiles');
-define('DBSP_ListAllAccessedFilesInFolder', DB_PREFIX . 'PListAllAccessedFilesInFolder');
-define('DBSP_DetailFolder',                 DB_PREFIX . 'PDetailFolder');
-define('DBSP_DeleteFolderUser',             DB_PREFIX . 'PDeleteFolderUser');
-define('DBUDF_FileUpdateFolder',            DB_PREFIX . 'FFileUpdateFolder');
-define('DBUDF_NumberOfFilesInFolder',       DB_PREFIX . 'FNumberOfFilesInFolder');
-define('DBUDF_FolderDelete',                DB_PREFIX . 'FFolderDelete');
 
 // Stored routines concerning match
 define('DBSP_CreateMatch',                  DB_PREFIX . 'PCreateMatch');

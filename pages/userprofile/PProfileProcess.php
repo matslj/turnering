@@ -51,6 +51,13 @@ $spChangeGravatar = DBSP_SetUserGravatar;
 $query = "";
 $mysqli = $db->Connect();
 
+// Get user-object
+$uo = CUserData::getInstance();
+$okToChangeAdmin = WS_CHANGE_PASSWORD_ON_ADMIN;
+
+if ($uo->isAdmin() && !$okToChangeAdmin) {
+    $_SESSION['errorMessage']	= "Den här applikationen har blivit konfigurerad till att inte acceptera förändringar på adminkontot";
+} else {
 // What type of submit are we dealing with?
 // Avalible types:
 // 1) Change password - for changing password
@@ -62,9 +69,9 @@ switch ($typeOfSubmit) {
     case "change-password":
         // $log -> debug("change-password");
         if (empty($password) || empty($passwordAgain)) {
-            $_SESSION['errorMessage']	= "Password fields cannot be empty";
+            $_SESSION['errorMessage']	= "Lösenordsfälten får inte vara tomma";
         } else if (strcmp($password, $passwordAgain) != 0) {
-            $_SESSION['errorMessage']	= "Entered and reentered password must match";
+            $_SESSION['errorMessage']	= "Lösenordsfälten måste matcha varandra";
         } else {
             $password = $mysqli->real_escape_string($password);
             // Create the query
@@ -100,6 +107,7 @@ switch ($typeOfSubmit) {
        $log -> debug("nada");
        $_SESSION['errorMessage'] = "I don't know what you just did, but I do not like it.";
 }
+}
 
 if (empty($_SESSION['errorMessage'])) {
     $log ->debug("query: " . $query);
@@ -110,7 +118,7 @@ if (empty($_SESSION['errorMessage'])) {
     $log -> debug("Number of statements: " . $nrOfStatements);
     // Must be exactly one successful statement.
     if($nrOfStatements != 1) {
-        $_SESSION['errorMessage']	= "Error: Could not update database";
+        $_SESSION['errorMessage']	= "Kunde inte uppdatera databasen.";
     }
 }
 

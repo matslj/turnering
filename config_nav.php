@@ -10,20 +10,16 @@
 $menuNavBar = Array (
         'Hem'           => '?p=home',
         'Matchups' 	    => '?p=matchup',
-        'Poängtavla' 	=> '?p=scoreboard',
+        'Resultatlista' => '?p=scoreboard',
 );
 define('MENU_NAVBAR', serialize($menuNavBar));
 
 $menuNavBarForAdmin = Array (
         'Hem'           => '?p=home',
         'Matchups' 	    => '?p=matchup',
-        'Poängtavla' 	=> '?p=scoreboard',
+        'Resultatlista' 	=> '?p=scoreboard',
         'Konfiguration' => '?p=admin_tournament',
-        //'Bildarkiv' 	=> '?p=archive',
         'Deltagare'     => '?p=admin_anvandare',
-        //'Bildintresse' 	=> '?p=userinterest',
-        //'Admin'         => '?p=admin',
-    	//'Om' 		=> '?p=about',
 );
 define('MENU_NAVBAR_FOR_ADMIN', serialize($menuNavBarForAdmin));
 

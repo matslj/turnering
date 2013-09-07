@@ -3,7 +3,7 @@
 //
 // PPageSave.php
 //
-// Saves an article to database
+// Saves text on a page to the database
 //
 // Author: Mats Ljungquist
 

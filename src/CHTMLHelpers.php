@@ -8,7 +8,7 @@
 // Small code snippets to reduce coding in the pagecontrollers. The snippets are mainly for
 // creating HTML code.
 //
-// Author: Mikael Roos, mos@bth.se
+// Author: Mats Ljungquist
 //
 
 
