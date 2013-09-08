@@ -46,9 +46,10 @@ $db = new CDatabaseController();
 $mysqli = $db->Connect();
 
 // Get user-object
-$uo = CUserData::getInstance();
+$uRep = user_CUserRepository::getInstance($db);
+$uo = $uRep->getUser($user);
 $okToChangeAdmin = WS_CHANGE_PASSWORD_ON_ADMIN;
-if ($uo->isAdmin() && !$okToChangeAdmin && strcmp($uo->getAccount(), $accountName) != 0) {
+if ($uo != null && $uo->isAdmin() && !$okToChangeAdmin && strcmp($uo->getAccount(), $accountName) != 0) {
     $_SESSION['errorMessage']	= "Den här applikationen har blivit konfigurerad till att inte acceptera förändring av adminusername";
 } else {
 

@@ -44,7 +44,7 @@ $htmlHead = <<<EOD
 
     <!-- jQuery Form Plugin -->
     <script type='text/javascript' src='{$js}jquery-form/jquery.form.js'></script>
-    <script type='text/javascript' src='{$js}myJs/disimg-utils.js'></script>
+    <script type='text/javascript' src='{$js}myJs/build-min.js'></script>
         
     <style>
         .errorTextField {
@@ -256,9 +256,9 @@ while($row = $res->fetch_object()) {
         <td id="accountName_{$i}">{$row->accountUser}</td>
         <td id="nameUser_{$i}">{$row->nameUser}</td>
         <td id="armyUser_{$i}">{$row->armyUser}</td>
-        <td id="idGroup_{$i}">{$row->idGroup}</td>
-        <td id="activeUser_{$i}">{$activeRewrite}</td>
-        <td><span id="{$i}:{$row->idUser}:{$row->accountUser}:{$row->nameUser}:{$row->emailUser}:{$row->armyUser}:{$row->activeUser}" class="edit"></span>
+        <td style="width: 20px; text-align: center;" id="idGroup_{$i}">{$row->idGroup}</td>
+        <td style="width: 30px; text-align: center;" id="activeUser_{$i}">{$activeRewrite}</td>
+        <td><span style="margin-left: 3px;" id="{$i}:{$row->idUser}:{$row->accountUser}:{$row->nameUser}:{$row->emailUser}:{$row->armyUser}:{$row->activeUser}" class="edit"></span>
 EOD;
                 
 if (strcmp($row->idGroup, 'adm') != 0) {

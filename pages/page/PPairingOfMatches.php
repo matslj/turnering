@@ -123,7 +123,7 @@ $htmlHead .= <<<EOD
 
     <!-- jQuery Form Plugin -->
     <script type='text/javascript' src='{$js}jquery-form/jquery.form.js'></script>
-    <script type='text/javascript' src='{$js}myJs/tournament.js'></script>
+    <script type='text/javascript' src='{$js}myJs/build-min.js'></script>
 EOD;
 
 $javaScript .= <<<EOD

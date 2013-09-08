@@ -72,6 +72,9 @@ EOD;
     }
 
     public function getUser($idUser) {
+        if (empty($idUser)) {
+            return null;
+        }
         return $this->users[$idUser];
     }
 

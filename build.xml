@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Turnering" default="build.dev">
+    
+    <tstamp>
+        <format property="build.time"
+                pattern="yyyy-MM-dd hh:mm:ss"
+                locale="se,SV"/>
+    </tstamp>
+
+  <!-- set global properties for this build -->
+  <loadproperties srcfile="ant.properties" />
+
+  <!-- Create the build directory -->
+  <target name="init">
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build.dir}"/>
+  </target>
+  
+  <!-- Clean the build directory -->
+  <target name="clean">
+    <delete dir="${build.dir}"/>
+  </target>
+  
+  <!-- Concatenate all js-files from the source directory into a single js-file 
+       The '!' sign at the (almost) start of the <header> content, tells the
+       yui compressor that the line is important and shall not be removed. -->
+  <target name="concatenate">
+      <concat destfile="${build.dir}/build.js" fixlastline="yes">
+          <header>/*! Build time: ${build.time} */</header>
+          <filelist dir="${src.dir}" files="tournament.js" />
+          <fileset dir="${src.dir}" includes="**/*.js">
+              <exclude name="tournament.js"/>
+              <exclude name="**/*-min.js"/>
+          </fileset>
+      </concat>
+  </target>
+  
+  <!-- Minify the js-files in the build directory -->
+  <target name="minify">
+      <apply executable="java" failonerror="true" parallel="false" dest="${build.dir}">
+          <fileset dir="${build.dir}" includes="*.js" />
+          <mapper type="glob" from="*.js" to="*-min.js" />
+          
+          <arg line="-jar"/>
+          <arg path="${yuicompressor}"/>
+          <arg line="${yuicompressor.options}"/>
+          <srcfile/>
+          
+          <arg line="-o"/>
+          <targetfile/>
+      </apply>
+  </target>
+  
+  <!-- Move all minified js-files to the src directory -->
+  <target name="replaceOldMin">
+      <move todir="${src.dir}">
+        <fileset dir="${build.dir}" includes="**/*-min.js" />
+      </move>
+  </target>
+
+  <target name="build.dev" depends="clean,init,concatenate,minify,replaceOldMin">
+    <echo>Build-dev completed</echo>
+  </target>
+</project>

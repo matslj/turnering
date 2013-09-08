@@ -70,8 +70,8 @@ $javaScript .= <<<EOD
             width: 615,
             url: "{$urlToProcessPage}",
             callback: function(data) {
-                console.log("data-pageid: " + data.pageId);
-                console.log("data-timestamp: " + data.timestamp);
+//                console.log("data-pageid: " + data.pageId);
+//                console.log("data-timestamp: " + data.timestamp);
                 // console.log("data-content: " + data.content);
                 if (data.pageId) {
                     $('#titlePage').html($('#titlePED').val());

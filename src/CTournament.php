@@ -115,6 +115,8 @@ EOD;
         if ($this->tournamentMatrix == null || ($theRoundToCreate == 1 && $this->currentRound == 1)) { //  && !$this->currentRoundEdited
             self::$LOG -> debug("inne häär");
             $this->tournamentMatrix = $this->createFirstRound($theDatabase);
+            $this->currentRoundComplete = false;
+            $this->currentRoundEdited = false;
         } else if ($theRoundToCreate < $this->currentRound && $theRoundToCreate > 0) {
             self::$LOG -> debug("dags för delete");
             $this->deleteCurrentRound($theDatabase);
@@ -294,7 +296,9 @@ EOD;
         // are about to create.
         $tempUserList = array();
         foreach ($tempOldUserList as $value) {
+            
             $tempPlayer = $value->getCopy();
+            self::$LOG -> debug("this is the tempplayer " . $tempPlayer->getName());
             $tempPlayer->setTotalScore($this->getTotalScore($tempPlayer, $theRound));
             $tempUserList[] = $tempPlayer;
             self::$LOG -> debug($tempPlayer->getName() . " score: " . $tempPlayer->getTotalScore());
@@ -529,8 +533,12 @@ EOD;
         // If get total score for each player up to, but not including, theNewRound.
         // If theNewRound is empty, then get total score for each player for all rounds.
         foreach ($this->tournamentMatrix as $key => $value) {
+            // self::$LOG -> debug("key: " . $key . " : value: " . $value . " thenewround: " . $theNewRound);
+            // self::$LOG -> debug(print_r($value, true));
             if ($key != $theNewRound || empty($theNewRound)) {
                 foreach ($value as $valueInner) {
+                    //self::$LOG -> debug(print_r($valueInner, true));
+                     //self::$LOG -> debug("valueInner: " . $valueInner);
                     if ($player->getId() == $valueInner->getPlayerOne()->getId()) {
                         $retVal += $valueInner->getScorePlayerOne();
                     } else if($player->getId() == $valueInner->getPlayerTwo()->getId()) {

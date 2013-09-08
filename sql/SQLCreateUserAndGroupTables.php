@@ -523,6 +523,11 @@ CREATE PROCEDURE {$spDeleteUser}
         IN anIdUser INT
 )
 BEGIN
+        DELETE FROM {$tMatch}
+        WHERE
+            playerOneMatch_idUser = anIdUser OR
+            playerTwoMatch_idUser = anIdUser;
+            
         DELETE FROM {$tStatistics}
         WHERE
             Statistics_idUser = anIdUser;
