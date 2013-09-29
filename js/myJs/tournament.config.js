@@ -40,7 +40,11 @@ tournament.config = {
             dateFormat: tournament.config.datePattern
         });
 
-        $(this.idForm).ajaxForm( { beforeSubmit: tournament.config.validate } ); 
+        $(this.idForm).ajaxForm({
+            dataType    : "json",
+            beforeSubmit: tournament.config.validate,
+            success:      tournament.config.response
+        }); 
         
         $('input').bind('keyup', function() {
             $(tournament.config.idInfo).html(tournament.infoMsg);
@@ -93,6 +97,12 @@ tournament.config = {
             return false;
         }
         $(tournament.config.idInfo).html('');
+    },
+    response : function (data) {
+        tournament.clearErrorMsg();
+        if (data) {
+            tournament.createErrorMsg(data);
+        }
     }
     
 };

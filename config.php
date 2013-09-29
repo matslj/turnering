@@ -70,5 +70,6 @@ define('TP_PAGESPATH',	  dirname(__FILE__) . DIRECTORY_SEPARATOR . 'pages' . DIR
 define('TP_LANGUAGEPATH', dirname(__FILE__) . DIRECTORY_SEPARATOR . 'lang' . DIRECTORY_SEPARATOR);  // Multi-language support
 define('TP_SQLPATH',	  dirname(__FILE__) . DIRECTORY_SEPARATOR . 'sql' . DIRECTORY_SEPARATOR);   // SQL code
 define('TP_LOGPATH',      dirname(__FILE__) . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR);   // log output directory; must be writable.
+define('TP_PDFGENPATH',   dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'tcpdf' . DIRECTORY_SEPARATOR);   // log output directory; must be writable.
 
 ?>

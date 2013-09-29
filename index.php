@@ -90,6 +90,12 @@ switch ($gPage) {
     case 'page-save':		 require_once(TP_PAGESPATH . 'page/PPageSave.php'); break;
     
     //
+    // Pages generated as PDF
+    //
+    case 'pdfscoreboard':	 require_once(TP_ROOT . 'pdf/PDFscoreboard.php'); break;
+    case 'pdfmatchup':		 require_once(TP_ROOT . 'pdf/PDFmatchup.php'); break;
+    
+    //
     // Matches
     //
     case 'matchup':          require_once(TP_PAGESPATH . 'page/PPairingOfMatches.php'); break;

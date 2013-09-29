@@ -73,12 +73,16 @@ require_once(TP_PAGESPATH . 'page/PPageEditDialog.php');
 //
 $mysqli->close();
 
+$siteLink = WS_SITELINK;
+$imageLink = WS_IMAGES;
+
 // -------------------------------------------------------------------------------------------
 //
 // Create HTML for page
 //
 $htmlMain = <<<EOD
-<h1>{$htmlPageTitleLink}</h1>
+<h1>{$htmlPageTitleLink}<span style="float: right;"><a href="{$siteLink}?p=pdfscoreboard"><img src="{$imageLink}/PDF-icon.png"></a></span></h1>
+    <div class="clear"></div>
     <p>
         {$htmlPageContent}
     </p>

@@ -54,6 +54,13 @@ class user_CUserData {
         return $retVal;
     }
     
+    public function equals($theUser) {
+        if (empty($theUser)) {
+            return false;
+        }
+        return ($theUser->getId() == $this->id);
+    }
+    
     public function isEmptyInstance() {
         return $this->id == 0;
     }

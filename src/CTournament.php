@@ -29,8 +29,11 @@ class CTournament {
     private $currentRound;
     private $currentRoundEdited;
     private $currentRoundComplete;
+    
+    // Tiebreakers
+    private $tieBreakers; // array of ITiebreak interface implementing objects
 
-    private function __construct($id, $creator, $place, $nrOfRounds, $type, $active, $byeScore, $tournamentDateFrom, $tournamentDateTom, $creationDate) {
+    private function __construct($id, $creator, $place, $nrOfRounds, $type, $active, $byeScore, $tournamentDateFrom, $tournamentDateTom, $creationDate, $theTieBreakers) {
         $this->id = $id;
         $this->creator = $creator;
         $this->place = $place;
@@ -41,6 +44,21 @@ class CTournament {
         $this->tournamentDateFrom = CDate::getInstanceFromMysqlDatetime($tournamentDateFrom);
         $this->tournamentDateTom = CDate::getInstanceFromMysqlDatetime($tournamentDateTom);
         $this->creationDate = CDate::getInstanceFromMysqlDatetime($creationDate);
+        $this->tieBreakers = array(); // Must always be initialized so leave it be.
+        // Below: add tie breakers. Explode the string of ','-delimited tiebreakers
+        // and use them in a strategy pattern to create tiebreaker-objects
+        $strArray = explode(",", $theTieBreakers);
+        foreach ($strArray as $value) {
+            switch ($value) {
+                case "internalwinner":
+                    $this->tieBreakers[] = new tiebreak_CInternalWinner();
+                    break;
+                case "mostwon":
+                    $this->tieBreakers[] = new tiebreak_CMostWon();
+                    break;
+            }
+        }
+       
     }
     
     public static function getEmptyInstance() {
@@ -71,7 +89,8 @@ class CTournament {
                 byeScoreTournament AS byeScore,
                 createdTournament AS creationDate,
                 dateFromTournament AS dateFrom,
-                dateTomTournament AS dateTom
+                dateTomTournament AS dateTom,
+                tieBreakersTournament AS tieBreakers
             FROM {$tTournament}
             WHERE
                 idTournament = {$theTournamentId};
@@ -89,7 +108,7 @@ EOD;
              $users = user_CUserRepository::getInstance($theDatabase);
              $user = $users->getUser($row->creator);
              $active = $row->active != 0 ? true : false;
-             $tempTournament = new self($row->id, $user, $row->place, $row->rounds, $row->type, $active, $row->byeScore, $row->dateFrom, $row->dateTom, $row->creationDate);
+             $tempTournament = new self($row->id, $user, $row->place, $row->rounds, $row->type, $active, $row->byeScore, $row->dateFrom, $row->dateTom, $row->creationDate, $row->tieBreakers);
          }
          $res->close();
          
@@ -231,7 +250,15 @@ EOD;
     public function isCurrentRoundComplete() {
         return $this->currentRoundComplete;
     }
-        
+    
+    public function getTieBreakers() {
+        return $this->tieBreakers;
+    }
+    
+    public function getCurrentRound() {
+        return $this->currentRound;
+    }
+            
     // ***************************************************************************************
     // **      Below are business methods
     // **
@@ -569,7 +596,26 @@ EOD;
     }
     
     private function sortByScore(&$players) {
-        usort($players, array("user_CUserData", "cmp"));
+        // Old sort, where the sorting method 'cmp' whas i user_CUserData
+        // usort($players, array("user_CUserData", "cmp"));
+        // New sort
+        usort($players, array($this, "cmpUsers"));
+    }
+    
+    public function cmpUsers($playerA, $playerB) {
+        if ($playerA->getTotalScore() == $playerB->getTotalScore()) {
+            // Equal score - apply tie breakers. In order, until a tie is broken
+            // or all the tie breakers are iterated. Uses strategy pattern.
+            foreach ($this->tieBreakers as $value) {
+                $result = $value->compare($playerA, $playerB, $this->tournamentMatrix);
+                if ($result != 0) {
+                    return $result;
+                }
+            }
+            // No breaking of the tie between the players was found. Return 0.
+            return 0;
+        }
+        return ($playerA->getTotalScore() > $playerB->getTotalScore()) ? -1 : 1;
     }
     
     private function deleteCurrentRound($theDatabase) {
@@ -704,13 +750,16 @@ EOD;
             $deleteSign = "";
             if ($theRound > 1) {
                 $dr = $theRound - 1;
-                $deleteSign = "<a href='{$siteLink}?p=matchupap&cr={$dr}'><img src='{$imageLink}/close_24.png'></a>";
+                $deleteSign = "<a href='{$siteLink}?p=matchupap&cr={$dr}' onclick='return confirm(\"Vill du verkligen radera den här rundan?\")'><img src='{$imageLink}/close_24.png'></a>";
             }
  
             $thePanel =  <<< EOD
-                <span class="panelMatchup">
-                    <a href="{$siteLink}?p=matchupap&cr={$theRound}">
-                        <img src="{$imageLink}/recycle_24.png">
+                <span class='panelMatchup'>
+                    <a href='{$siteLink}?p=pdfmatchup&round={$theRound}'>
+                        <img src='{$imageLink}/PDF-icon.png'>
+                    </a>
+                    <a href='{$siteLink}?p=matchupap&cr={$theRound}' onclick='return confirm("Vill du verkligen göra om den här rundan?")'>
+                        <img src='{$imageLink}/recycle_24.png' alt='Skriv ut som pdf'>
                     </a>
                     {$deleteSign}
                 </span>
@@ -763,6 +812,31 @@ EOD;
             $html .= $this->getRoundAsHtml($key, $editable, $admin);
         }
         $html .= "</div> <!-- End of allRounds div -->";
+        return $html;
+    }
+    
+    public function getRoundAsHtmlForPDF($theRound) {
+        
+        $tempRound = $this->tournamentMatrix[$theRound];
+        
+        $byedPlayer = null;
+
+        $html .= "<h2>Omgång {$theRound}</h2><table cellpadding=\"5\">";
+        
+        foreach ($tempRound as $value) {
+            if ($value->getPlayerOne()->isEmptyInstance() || $value->getPlayerTwo()->isEmptyInstance()) {
+                $byedPlayer = $value->getPlayerOne()->isEmptyInstance() ? $value->getPlayerTwo() : $value->getPlayerOne();
+            } else {
+                $html .= "<tr><td class=\"first\">{$value->getPlayerOne()->getAccount()}</td><td class=\"marker\">&nbsp;-</td><td>{$value->getPlayerTwo()->getAccount()}</td></tr>";
+            }
+        }
+        
+        $html .= "</table>";
+        
+        if ($byedPlayer != null) {
+            $html .= "<p>Spelare som får stå över den här rundan: <span>" . $byedPlayer->getAccount() . "</span></p>";
+        }
+        
         return $html;
     }
 

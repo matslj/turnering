@@ -40,23 +40,6 @@ switch($thePage) {
     case 'tournamentp': require_once(TP_PAGESPATH . 'admin/PTournamentProcess.php');
     break;
 
-    // Pages for connecting user to folders
-    case 'manager':             require_once(TP_PAGESPATH . 'admin/PPictureManager.php'); break;
-    case 'managerp':            require_once(TP_PAGESPATH . 'admin/PPictureManagerProcess.php'); break;
-
-    //
-    //	File Archive
-    //
-    case 'homef':		require_once(TP_PAGESPATH . 'file_handling/PIndex.php'); break;
-    case 'archive':             require_once(TP_PAGESPATH . 'admin/PPictureArchive.php'); break;
-    case 'upload':              require_once(TP_PAGESPATH . 'file_handling/PFileUpload.php'); break;
-    case 'uploadp':             require_once(TP_PAGESPATH . 'file_handling/PFileUploadProcess.php'); break;
-    case 'file-delete':         require_once(TP_PAGESPATH . 'file_handling/PFileDeleteProcess.php'); break;
-    case 'file-deleteMulti':    require_once(TP_PAGESPATH . 'file_handling/PFileDeleteProcessMulti.php'); break;
-    case 'file-moveMulti':      require_once(TP_PAGESPATH . 'file_handling/PFileMoveProcessMulti.php'); break;
-    case 'file-download':	require_once(TP_PAGESPATH . 'file_handling/PFileDownloadProcess.php'); break;
-
-
 	//
     // Default case, trying to access some unknown page, should present some error message
     // or show the home-page

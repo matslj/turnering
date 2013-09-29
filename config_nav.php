@@ -17,7 +17,7 @@ define('MENU_NAVBAR', serialize($menuNavBar));
 $menuNavBarForAdmin = Array (
         'Hem'           => '?p=home',
         'Matchups' 	    => '?p=matchup',
-        'Resultatlista' 	=> '?p=scoreboard',
+        'Resultatlista' => '?p=scoreboard',
         'Konfiguration' => '?p=admin_tournament',
         'Deltagare'     => '?p=admin_anvandare',
 );
@@ -52,4 +52,10 @@ $selectableArmies = Array (
     'Lizardmen' => 'lizardmen',
 );
 define('SELECTABLE_ARMIES', serialize($selectableArmies));
+
+$selectableTieBreakers = Array (
+    'Inbördes möte' => 'internalwinner',
+    'Flest vunna' => 'mostwon',
+);
+define('SELECTABLE_TIE_BREAKERS', serialize($selectableTieBreakers));
 ?>

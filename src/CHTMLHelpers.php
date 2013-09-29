@@ -95,6 +95,38 @@ class CHTMLHelpers {
 		return $menu;
 	}
     
+    public static function getHtmlForSelectableTieBreakers($ddId, $ddName = "tiebreaker", $selectedTieBreaker = "") {
+
+        $selectableTieBreakers = SELECTABLE_TIE_BREAKERS;
+        $sList = unserialize($selectableTieBreakers);
+
+        $html = "<select id='{$ddId}' class='{$ddName}' name='{$ddName}'>";
+        $html .= "<option value=''>-</option>";
+        foreach($sList as $key => $value) {
+            $selected = !empty($selectedTieBreaker) && (strcmp($value, $selectedTieBreaker) == 0) ? " SELECTED" : "";
+            $html .= "<option value='{$value}'{$selected}>{$key}</option>";
+        }
+        $html .= "</select>";
+
+        return $html;
+    }
+    
+    public static function isSelectableTieBreaker($name) {
+
+        $selectableTieBreakers = SELECTABLE_TIE_BREAKERS;
+        $sList = unserialize($selectableTieBreakers);
+        $retVal = false;
+        
+        foreach($sList as $value) {
+            if (strcmp($value, $name) == 0) {
+                $retVal = true;
+                break;
+            }
+        }
+
+        return $retVal;
+    }
+    
     /**
      * Returns all selectable armies as a html <select>.
      * 

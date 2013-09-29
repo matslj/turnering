@@ -76,10 +76,22 @@ EOD;
 // --
 $helpContent = <<<EOD
 <p>
-    Här konfigurerar man vissa grundläggande data för turneringen. Om man redan har kört igång
-    en turnering, dvs börjat generera matcher, så kanske det inte är så meningsfullt att börja
-    skruva på t.ex antalet rundor.
+    Här konfigurerar man vissa grundläggande data för turneringen. Det går att ändra
+    även under pågående turnering, men ens valmöjligheter kan då komma att begränsas
+    något - t.ex. är det inte möjligt att sätta ett lägre antal rundor än det antal
+    rundor som redan är spelade.
 </p>
+<p style="font-weight: bold;">Tie breakers</p>
+<p>
+    Ponera att spelare x och spelare y har samma poäng. Om man har angivit en eller flera
+    tie breakers, så appliceras dessa, i ordning, på x och y i ett vidare försök att lösa
+    x och ys ranking. De tie breakers som finns är:
+</p>
+<ul>
+    <li>Inbördes möte: Om x och y har mötts tidigare, så rankas den högre som vann deras möte.</li>
+    <li>Flest vinster: Den som har flest vinster rankas högre</li>
+</ul>
+Man kan också välja att inte ha någon tie breaker.
 EOD;
 
 // Provides help facility - include $htmlHelp in main content
@@ -113,7 +125,34 @@ $mysqli->close();
 
 // -------------------------------------------------------------------------------------------
 //
-// Show the results of the query
+// Deal with the tie breaking functionality
+//
+
+function getTieBreakerName($theTb) {
+    if ($theTb instanceof tiebreak_CInternalWinner) {
+        return "internalwinner";
+    } else if ($theTb instanceof tiebreak_CMostWon) {
+        return "mostwon";
+    }
+    return "";
+}
+
+$tbList = $tournament->getTieBreakers();
+$dbTbOne = "";
+$dbTbTwo = "";
+if (count($tbList) >= 1) {
+    $dbTbOne = getTieBreakerName($tbList[0]);
+}
+if (count($tbList) >= 2) {
+    $dbTbTwo = getTieBreakerName($tbList[1]);
+}
+
+$selectTieBreakOne = CHTMLHelpers::getHtmlForSelectableTieBreakers('tieBreakOne', 'tbone', $dbTbOne);
+$selectTieBreakTwo = CHTMLHelpers::getHtmlForSelectableTieBreakers('tieBreakTwo', 'tbtwo', $dbTbTwo);
+
+// -------------------------------------------------------------------------------------------
+//
+// Create the html
 //
 
 $action = "?p=" . $pc->computePage() . "p";
@@ -160,10 +199,27 @@ $htmlMain .= <<< EOD
                     </td>
                 </tr>
                 <tr>
+                    <td class='konfLabel'>&nbsp;</td>
+                    <td>Ange eventuella tie breakers (nedan) i den ordning du vill att de ska appliceras</td>
+                </tr>
+                <tr>
+                    <td class='konfLabel'><label for="tieBreakOne">Tie break 1: </label></td>
+                    <td>
+                        {$selectTieBreakOne}
+                    </td>
+                </tr>
+                <tr>
+                    <td class='konfLabel'><label for="tieBreakTwo">Tie break 2: </label></td>
+                    <td>
+                        {$selectTieBreakTwo}
+                    </td>
+                </tr>
+                <tr>
                     <td><button id="updateTournament" style='margin-top: 20px;' type='submit' name='submit' value='update'>Uppdatera</button></td>
                     <td id="info" style='padding-top: 20px;'></td>
                 </tr>
             </table>
+            {$_SESSION['errorMessage']}
     </form>
 </div>
 EOD;
