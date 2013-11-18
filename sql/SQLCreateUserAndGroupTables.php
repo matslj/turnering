@@ -16,6 +16,7 @@ $imageLink = WS_IMAGES;
 $tSida          = DBT_Sida;
 $tMatch         = DBT_Match;
 $tTournament    = DBT_Tournament;
+$tPointFilter   = DBT_PointFilter;
 $tUser 			= DBT_User;
 $tGroup 		= DBT_Group;
 $tGroupMember 	= DBT_GroupMember;
@@ -50,6 +51,11 @@ $spCreateTournament             = DBSP_CreateTournament;
 $spEditTournament               = DBSP_EditTournament;
 $spEditSelectedValuesTournament = DBSP_EditSelectedValuesTournament;
 $spChangeActiveTournament       = DBSP_ChangeActiveTournament;
+$spSetJsonScoreProxyTournament  = DBSP_SetJsonScoreProxyTournament;
+
+// Point filter related sps
+$spCreatePointFilter = DBSP_CreatePointFilter;
+$spEditPointFilter   = DBSP_EditPointFilter;
 
 $fCheckUserIsAdmin = DBUDF_CheckUserIsAdmin;
 
@@ -61,6 +67,7 @@ DROP TABLE IF EXISTS {$tStatistics};
 DROP TABLE IF EXISTS {$tSida};
 
 DROP TABLE IF EXISTS {$tMatch};
+DROP TABLE IF EXISTS {$tPointFilter};
 DROP TABLE IF EXISTS {$tTournament};
 DROP TABLE IF EXISTS {$tGroupMember};
 DROP TABLE IF EXISTS {$tUser};
@@ -147,7 +154,9 @@ CREATE TABLE {$tTournament} (
   createdTournament DATETIME NOT NULL,
   dateFromTournament DATETIME NOT NULL,
   dateTomTournament DATETIME NOT NULL,
-  tieBreakersTournament VARCHAR(200) NULL
+  tieBreakersTournament VARCHAR(200) NULL,
+  useProxyTournament BOOL NOT NULL,
+  jsonScoreProxyTournament TEXT NULL
 );
 
 
@@ -173,6 +182,28 @@ CREATE TABLE {$tMatch} (
   playerTwoScoreMatch INT NOT NULL,
   roundMatch INT NOT NULL,
   lastUpdateMatch DATETIME NOT NULL
+  
+);
+
+--
+-- Table for a Match (a round between two players/users)
+--
+CREATE TABLE {$tPointFilter} (
+
+  -- Primary key(s)
+  idPointFilter INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+  
+  -- Foreign keys
+  tRefPointFilter_idTournament INT NOT NULL,
+
+  FOREIGN KEY (tRefPointFilter_idTournament) REFERENCES {$tTournament}(idTournament),
+      
+  -- Attributes
+  
+  lowScorePointFilter INT NOT NULL,
+  highScorePointFilter INT NOT NULL,
+  playerOneScorePointFilter INT NOT NULL,
+  playerTwoScorePointFilter INT NOT NULL
   
 );
 
@@ -227,13 +258,15 @@ CREATE PROCEDURE {$spCreateTournament}
     IN aDateFrom DATETIME,
     IN aDateTom DATETIME,
     IN aTieBreakers VARCHAR(200),
+    IN anUseProxy BOOL,
+    IN aJsonScoreProxy TEXT,
     OUT aTournamentId INT
 )
 BEGIN
 	INSERT INTO {$tTournament}
-        (creatorTournament_idUser, placeTournament, roundsTournament, typeTournament, activeTournament, byeScoreTournament, createdTournament, dateFromTournament, dateTomTournament, tieBreakersTournament)
+        (creatorTournament_idUser, placeTournament, roundsTournament, typeTournament, activeTournament, byeScoreTournament, createdTournament, dateFromTournament, dateTomTournament, tieBreakersTournament, useProxyTournament, jsonScoreProxyTournament)
     VALUES
-        (anIdCreator, aPlace, aNrOfRounds, aType, anActiveTournament, aByeScore, NOW(), aDateFrom, aDateTom, aTieBreakers);
+        (anIdCreator, aPlace, aNrOfRounds, aType, anActiveTournament, aByeScore, NOW(), aDateFrom, aDateTom, aTieBreakers, anUseProxy, aJsonScoreProxy);
 
     SELECT LAST_INSERT_ID() INTO aTournamentId;
 END;
@@ -252,7 +285,9 @@ CREATE PROCEDURE {$spEditTournament}
     IN aByeScore INT,
     IN aDateFrom DATETIME,
     IN aDateTom DATETIME,
-    IN aTieBreakers VARCHAR(200)
+    IN aTieBreakers VARCHAR(200),
+    IN anUseProxy BOOL,
+    IN aJsonScoreProxy TEXT
 )
 BEGIN
     -- Only update if there are no matches in the tournament
@@ -264,14 +299,16 @@ BEGIN
     IF i = 0 THEN
     BEGIN
         UPDATE {$tTournament} SET
-                placeTournament       = aPlace,
-                roundsTournament      = aNrOfRounds,
-                typeTournament        = aType,
-                activeTournament      = anActiveTournament,
-                byeScoreTournament    = aByeScore,
-                dateFromTournament    = aDateFrom,
-                dateTomTournament     = aDateTom,
-                tieBreakersTournament = aTieBreakers
+                placeTournament          = aPlace,
+                roundsTournament         = aNrOfRounds,
+                typeTournament           = aType,
+                activeTournament         = anActiveTournament,
+                byeScoreTournament       = aByeScore,
+                dateFromTournament       = aDateFrom,
+                dateTomTournament        = aDateTom,
+                tieBreakersTournament    = aTieBreakers,
+                useProxyTournament       = anUseProxy,
+                jsonScoreProxyTournament = aJsonScoreProxy
         WHERE
                 idTournament = aTournamentId
         LIMIT 1;
@@ -290,7 +327,8 @@ CREATE PROCEDURE {$spEditSelectedValuesTournament}
     IN aByeScore INT,
     IN aDateFrom DATETIME,
     IN aDateTom DATETIME,
-    IN aTieBreakers VARCHAR(200)
+    IN aTieBreakers VARCHAR(200),
+    IN anUseProxy BOOL
 )
 BEGIN
     UPDATE {$tTournament} SET
@@ -298,7 +336,27 @@ BEGIN
             byeScoreTournament = aByeScore,
             dateFromTournament = aDateFrom,
             dateTomTournament  = aDateTom,
-            tieBreakersTournament = aTieBreakers
+            tieBreakersTournament = aTieBreakers,
+            useProxyTournament = anUseProxy
+    WHERE
+            idTournament = aTournamentId
+    LIMIT 1;
+END;
+   
+--
+-- SP to store a json representation of the score filter matrix in the database.
+-- The score filter matrix can be used to translate a score interval into a set
+-- score ratio.
+--
+DROP PROCEDURE IF EXISTS {$spSetJsonScoreProxyTournament};
+CREATE PROCEDURE {$spSetJsonScoreProxyTournament}
+(
+    IN aTournamentId INT,
+    IN aJsonScoreProxy TEXT
+)
+BEGIN
+    UPDATE {$tTournament} SET
+            jsonScoreProxyTournament = aJsonScoreProxy
     WHERE
             idTournament = aTournamentId
     LIMIT 1;
@@ -320,6 +378,17 @@ BEGIN
             idTournament = aTournamentId
     LIMIT 1;
 END;
+
+--
+-- SP to create a point filter
+--
+DROP PROCEDURE IF EXISTS {$spCreatePointFilter};
+
+--
+-- SP to edit a Tournament
+--
+DROP PROCEDURE IF EXISTS {$spEditPointFilter};
+
 
 --
 -- SP to create a new Match
@@ -787,24 +856,35 @@ VALUES ('admin', 'admin@noreply.se', 'Mr Admin', NOW(), md5('admin'), '{$imageLi
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
 VALUES ('Hobbylim', 'mats@noreply.se', 'Mats Ljungquist', NOW(), md5('Hobbylim'), '{$imageLink}man_60x60.png', 'Vampire Counts', TRUE);
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
-VALUES ('doe', 'doe@noreply.se', 'John/Jane Doe', NOW(), md5('doe'), '{$imageLink}man_60x60.png', 'Skaven', TRUE);
+VALUES ('doe', 'doe@noreply.se', 'John/Jane Doe', NOW(), md5('doe'), '{$imageLink}man_60x60.png', 'Skaven', FALSE);
     
 
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
 VALUES ('Akbar', 'akbar@noreply.se', 'Anders Lindblad', NOW(), md5('Akbar'), '{$imageLink}man_60x60.png', 'Empire', TRUE);
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
-VALUES ('Jonatan', 'jonathan@noreply.se', 'Jonatan Viklund', NOW(), md5('Jonatan'), '{$imageLink}man_60x60.png', 'Lizardmen', TRUE);
+VALUES ('Jonatan', 'jonathan@noreply.se', 'Jonatan Viklund', NOW(), md5('Jonatan'), '{$imageLink}man_60x60.png', 'Lizardmen', FALSE);
     
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
 VALUES ('Svullom', 'svullom@noreply.se', 'Alexander Larsson', NOW(), md5('Svullom'), '{$imageLink}man_60x60.png', 'Skaven', TRUE);
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
-VALUES ('Echunia', 'echunia@noreply.se', 'Casimir Ehrenborg', NOW(), md5('Echunia'), '{$imageLink}man_60x60.png', 'Tomb Kings', TRUE);
+VALUES ('Echunia', 'echunia@noreply.se', 'Casimir Ehrenborg', NOW(), md5('Echunia'), '{$imageLink}man_60x60.png', 'Tomb Kings', FALSE);
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
 VALUES ('Hugo', 'hugo@noreply.se', 'Hugo Nordland', NOW(), md5('Hugo'), '{$imageLink}man_60x60.png', 'High Elves', TRUE);
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
-VALUES ('Gustav', 'gustav@noreply.se', 'Gustav Weberup', NOW(), md5('Gustav'), '{$imageLink}man_60x60.png', 'High Elves', TRUE);
+VALUES ('Gustav', 'gustav@noreply.se', 'Gustav Weberup', NOW(), md5('Gustav'), '{$imageLink}man_60x60.png', 'High Elves', FALSE);
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
 VALUES ('TiburtiusMarkus', 'tiburtiusmarkus@noreply.se', 'Bertil Persson', NOW(), md5('TiburtiusMarkus'), '{$imageLink}man_60x60.png', 'Warriors of Chaos', TRUE);
+    
+INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
+VALUES ('Southpaw', 'southpaw@noreply.se', 'Henrik Jönsson', NOW(), md5('Southpaw'), '{$imageLink}man_60x60.png', 'High Elves', TRUE);
+INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
+VALUES ('Tor', 'tor@noreply.se', 'Tor Nilsson', NOW(), md5('Tor'), '{$imageLink}man_60x60.png', 'Wood Elves', TRUE);
+INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
+VALUES ('Marcus', 'marcus@noreply.se', 'Marcus Altin', NOW(), md5('Marcus'), '{$imageLink}man_60x60.png', 'Lizardmen', TRUE);
+INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
+VALUES ('MR. GRUMPY', 'rasmus@noreply.se', 'Rasmus Törnqvist', NOW(), md5('Rasmus'), '{$imageLink}man_60x60.png', 'High Elves', TRUE);
+INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
+VALUES ('Zilan', 'zilan@noreply.se', 'Carl', NOW(), md5('Zilan'), '{$imageLink}man_60x60.png', 'Lizardmen', TRUE);
 
 --
 -- Add default groups
@@ -837,8 +917,19 @@ INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
 INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
     VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'TiburtiusMarkus'), 'usr');
         
+INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
+    VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'Southpaw'), 'usr');
+INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
+    VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'Tor'), 'usr');
+INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
+    VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'Marcus'), 'usr');
+INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
+    VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'MR. GRUMPY'), 'usr');
+INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
+    VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'Zilan'), 'usr');       
+        
 SET @aTournamentId = 0;
-CALL {$spCreateTournament}(1, 'Here', 3, 'Swiss', true, 1000, NOW(), NOW(), "internalwinner", @aTournamentId);
+CALL {$spCreateTournament}(1, 'Here', 3, 'Swiss', true, 1000, NOW(), NOW(), "internalwinner", false, null, @aTournamentId);
 SELECT @aTournamentId AS id;
 
 EOD;

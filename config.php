@@ -64,7 +64,7 @@ require_once('config_nav.php');
 // Settings for the template (TP) structure, show where everything are stored.
 // Support for storing in directories, no need to store everything under one directory
 //
-define('TP_ROOT',	  dirname(__FILE__) . DIRECTORY_SEPARATOR);                                 // The root of installation
+define('TP_ROOT',	      dirname(__FILE__) . DIRECTORY_SEPARATOR);                                 // The root of installation
 define("TP_SOURCEPATH",	  dirname(__FILE__) . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR);   // Classes, functions, code
 define('TP_PAGESPATH',	  dirname(__FILE__) . DIRECTORY_SEPARATOR . 'pages' . DIRECTORY_SEPARATOR); // Pagecontrollers and modules
 define('TP_LANGUAGEPATH', dirname(__FILE__) . DIRECTORY_SEPARATOR . 'lang' . DIRECTORY_SEPARATOR);  // Multi-language support

@@ -280,7 +280,7 @@ $htmlMain .= <<< EOD
     </table>
 </div>
 <!-- ui-dialog create -->
-<div id="dialogCreate" title="Skapa ny användare">
+<div id="dialogCreate" title="Skapa ny användare" class="dialog">
     <form id='dialogCreateForm' action='{$action}' method='POST'>
         <input type='hidden' name='redirect' value='{$redirect}'>
         <input type='hidden' name='redirect-failure' value='{$redirect}'>
@@ -300,7 +300,7 @@ $htmlMain .= <<< EOD
                     <td style='text-align: right;'><input id='dialogCreateName' class='name' type='text' name='name' value='' /></td>
                 </tr>
                 <tr>
-                    <td><label for="dialogCreateArmy">Army: </label></td>
+                    <td><label for="dialogCreateArmy">Armé: </label></td>
                     <td style='text-align: right;'>{$selectArmyCreate}</td>
                 </tr>
                 <tr colspan="2">
@@ -311,7 +311,7 @@ $htmlMain .= <<< EOD
     </form>
 </div>
 <!-- ui-dialog edit -->
-<div id="dialogEdit" title="Ändra användare">
+<div id="dialogEdit" title="Ändra användare" class="dialog">
     <form id='dialogEditForm' action='{$action}' method='POST'>
         <input type='hidden' name='redirect' value='{$redirect}'>
         <input type='hidden' name='redirect-failure' value='{$redirect}'>
@@ -330,7 +330,7 @@ $htmlMain .= <<< EOD
                     <td style='text-align: right;'><input id='dialogEditName' class='name' type='text' name='name' value='' /></td>
                 </tr>
                 <tr>
-                    <td><label for="dialogEditArmy">Army: </label></td>
+                    <td><label for="dialogEditArmy">Armé: </label></td>
                     <td style='text-align: right;'>{$selectArmyEdit}</td>
                 </tr>
                 <tr colspan="2">
@@ -341,7 +341,7 @@ $htmlMain .= <<< EOD
     </form>
 </div>
 <!-- ui-dialog delete -->
-<div id="dialogDelete" title="Radera användare">
+<div id="dialogDelete" title="Radera användare" class="dialog">
     <form id='dialogDeleteForm' action='{$action}' method='POST'>
         <input type='hidden' name='redirect' value='{$redirect}'>
         <input type='hidden' name='redirect-failure' value='{$redirect}'>

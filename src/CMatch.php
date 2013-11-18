@@ -15,6 +15,8 @@ class CMatch {
     private $playerTwo;
     private $scorePlayerOne;
     private $scorePlayerTwo;
+    private $proxyScorePlayerOne;
+    private $proxyScorePlayerTwo;
     private $lastUpdated;
 
     function __construct($id, $round, $playerOne, $playerTwo, $scorePlayerOne, $scorePlayerTwo, $lastUpdated) {
@@ -25,6 +27,8 @@ class CMatch {
         $this->scorePlayerOne = $scorePlayerOne;
         $this->scorePlayerTwo = $scorePlayerTwo;
         $this->lastUpdated = $lastUpdated;
+        $this->proxyScorePlayerOne = null;
+        $this->proxyScorePlayerTwo = null;
     }
 
     // ------------------------------------------------------------------------------------
@@ -76,6 +80,7 @@ class CMatch {
 
     public function setScorePlayerOne($scorePlayerOne) {
         $this->scorePlayerOne = $scorePlayerOne;
+        $this->proxyScorePlayerOne = null;
     }
 
     public function getScorePlayerTwo() {
@@ -84,6 +89,7 @@ class CMatch {
 
     public function setScorePlayerTwo($scorePlayerTwo) {
         $this->scorePlayerTwo = $scorePlayerTwo;
+        $this->proxyScorePlayerTwo = null;
     }
 
     public function getLastUpdated() {
@@ -92,6 +98,28 @@ class CMatch {
 
     public function setLastUpdated($lastUpdated) {
         $this->lastUpdated = $lastUpdated;
+    }
+    
+    public function setProxyScorePlayerOne($proxyScorePlayerOne) {
+        $this->proxyScorePlayerOne = $proxyScorePlayerOne;
+    }
+
+    public function setProxyScorePlayerTwo($proxyScorePlayerTwo) {
+        $this->proxyScorePlayerTwo = $proxyScorePlayerTwo;
+    }
+        
+    public function getProxyScorePlayerOne() {
+        if ($this->proxyScorePlayerOne == null) {
+            return 0;
+        }
+        return $this->proxyScorePlayerOne;
+    }
+
+    public function getProxyScorePlayerTwo() {
+        if ($this->proxyScorePlayerTwo == null) {
+            return 0;
+        }
+        return $this->proxyScorePlayerTwo;
     }
 
 } // End of Of Class

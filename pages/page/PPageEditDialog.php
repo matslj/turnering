@@ -143,7 +143,7 @@ if (isset($hideTitle) && $hideTitle == true) {
 //
 $htmlPageTextDialog = <<<EOD
 <!-- ui-dialog delete -->
-<div id="dialogPageTextChange" title="Ändra text">
+<div id="dialogPageTextChange" title="Ändra text" class="dialog">
     <form id="dialogPageTextChangeForm" action='?p=page-save' method='POST'>
         <h3>Titel</h3> 
         <input id='titlePED' type='{$type}' name='title' value='{$title}'>

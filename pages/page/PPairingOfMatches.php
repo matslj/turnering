@@ -56,6 +56,8 @@ $tManager = new CTournamentManager();
 $tournament = $tManager->getTournament($db);
 $tournamentHtml = $tManager->getTournamentMatchupsAsHtml($db, $admin);
 
+$scoreProxyManager = $tournament->getScoreProxyManager();
+
 $htmlHead = "";
 $javaScript = "";
 
@@ -124,12 +126,24 @@ $htmlHead .= <<<EOD
     <!-- jQuery Form Plugin -->
     <script type='text/javascript' src='{$js}jquery-form/jquery.form.js'></script>
     <script type='text/javascript' src='{$js}myJs/build-min.js'></script>
+        
+    <style>
+        .proxyLeft {
+            padding-right: 20px;
+            color: #33CC33;
+        }
+        .proxyRight {
+            padding-left: 20px;
+            color: #33CC33;
+        }
+    </style>
 EOD;
 
 $javaScript .= <<<EOD
 (function($){
     $(document).ready(function() {
-        tournament.matches.init("{$nextLink}", '{$action}');
+        var proxyFilter = {$scoreProxyManager->getScoreFilterAsJavascriptObjectArray()};
+        tournament.matches.init("{$nextLink}", '{$action}', proxyFilter);
     });
 })(jQuery);
 EOD;

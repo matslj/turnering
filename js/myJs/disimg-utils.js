@@ -122,6 +122,33 @@ $.fn.pageEditDialog = function(options, data) {
     $.fn.disimgDialog.dialogify(element, o);
 }
 
+$.fn.pointFilterDialog = function(options, data) {
+    // Secure the 'this'-element
+    var element = $(this);
+    var o = $.extend({}, $.fn.disimgDialog.defaults, options);
+
+    // Initialize buttons
+    if (o.buttons == null) {
+        o.buttons = [
+            {
+                text: "Spara",
+                click: function() {
+                    tournament.config.updateScoreFilter(data.tournamentId, o.callback);
+                }
+            },
+            {
+                text: "Avbryt",
+                click: function() {
+                    $( element ).dialog( "close" );
+                }
+            }
+        ];
+    }
+    
+    // Dialogify the element
+    $.fn.disimgDialog.dialogify(element, o);
+}
+
 // This method uses jquery-ui to create a dialog of an element from the options
 // in the parameters.
 $.fn.disimgDialog.dialogify = function(element, o) {

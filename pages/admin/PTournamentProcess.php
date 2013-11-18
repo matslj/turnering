@@ -40,8 +40,27 @@ $hourTom 	= $pc->POSTisSetOrSetDefault('hourTom',    0);
 $minuteTom  = $pc->POSTisSetOrSetDefault('minuteTom',  0);
 $nrOfRounds = $pc->POSTisSetOrSetDefault('nrOfRounds', 0);
 $byeScore	= $pc->POSTisSetOrSetDefault('byeScore',   0);
-$tieBreak1 	= $pc->POSTisSetOrSetDefault('tbone',   '');
-$tieBreak2	= $pc->POSTisSetOrSetDefault('tbtwo',   '');
+$tieBreak1 	= $pc->POSTisSetOrSetDefault('tbone',     '');
+$tieBreak2	= $pc->POSTisSetOrSetDefault('tbtwo',     '');
+$tieBreak3	= $pc->POSTisSetOrSetDefault('tbthree',     '');
+$useProxy	= $pc->POSTisSetOrSetDefault('pointFilterCbx', 'false');
+
+$log->debug("##### useProxy: " . $useProxy);
+
+if (strcmp($useProxy, "true") != 0) {
+    $useProxy = "false";
+    
+    // If useProxy is false, then 'orgscore' is not a selectable tie break option.
+    if (strcmp($tieBreak1, "orgscore") == 0) {
+        $tieBreak1 = "";
+    }
+    if (strcmp($tieBreak2, "orgscore") == 0) {
+        $tieBreak2 = "";
+    }
+    if (strcmp($tieBreak3, "orgscore") == 0) {
+        $tieBreak3 = "";
+    }
+}
 
 // Check incoming data
 $pc->IsNumericOrDie($tId, 0);
@@ -102,6 +121,14 @@ try {
 
 $tbResult = "";
 
+// -- Tie break validation --
+// 
+// If a tie break exists it must be a valid tie breaker, this is checked against
+// CHTMLHelpers::isSelectableTieBreaker(). If it is ok it will be added to
+// the string of tie breakers which will be sent to the data base.
+// 
+// Also a tie breaker must not be the same as another tiebreker. If so it does
+// not generate an error, it will simply be discarded.
 if (!empty($tieBreak1)) {
     if (CHTMLHelpers::isSelectableTieBreaker($tieBreak1)) {
         $tbResult = $tieBreak1;
@@ -121,6 +148,20 @@ if (!empty($tieBreak2) && strcmp($tieBreak1, $tieBreak2) != 0) {
         }
     } else {
         $errorMsg = "Tie break 2 har inte ett giltigt värde.";
+        $errorMsgArray[] = $errorMsg;
+        $errorFound = true;
+    }
+}
+
+if (!empty($tieBreak3) && strcmp($tieBreak1, $tieBreak3) != 0 && strcmp($tieBreak2, $tieBreak3) != 0) {
+    if (CHTMLHelpers::isSelectableTieBreaker($tieBreak3)) {
+        if (!empty($tbResult)) {
+            $tbResult = $tbResult . "," . $tieBreak3;
+        } else {
+            $tbResult = $tieBreak3;
+        }
+    } else {
+        $errorMsg = "Tie break 3 har inte ett giltigt värde.";
         $errorMsgArray[] = $errorMsg;
         $errorFound = true;
     }
@@ -150,7 +191,7 @@ exit;
 $dateFormat = "Y-m-d H:i:s";
 
 $spEditSelectedValuesTournament = DBSP_EditSelectedValuesTournament;
-$query = "CALL {$spEditSelectedValuesTournament}({$tId}, {$nrOfRounds}, {$byeScore}, '{$df->format($dateFormat)}', '{$dt->format($dateFormat)}', '{$tbResult}');";
+$query = "CALL {$spEditSelectedValuesTournament}({$tId}, {$nrOfRounds}, {$byeScore}, '{$df->format($dateFormat)}', '{$dt->format($dateFormat)}', '{$tbResult}', {$useProxy});";
 
 // Perform the query
 $res = $db->MultiQuery($query);

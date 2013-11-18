@@ -39,6 +39,8 @@ switch($thePage) {
     break;
     case 'tournamentp': require_once(TP_PAGESPATH . 'admin/PTournamentProcess.php');
     break;
+    case 'tournamentpd': require_once(TP_PAGESPATH . 'admin/PTournamentPointFilterDialogProcess.php');
+    break;
 
 	//
     // Default case, trying to access some unknown page, should present some error message

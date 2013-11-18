@@ -49,17 +49,18 @@ $htmlHead = <<< EOD
     .whenWhere {
         float: right;
         padding: 0 5px 0 5px;
-        margin: 0 10px 10px 0;
+        margin: 0 0 10px 10px;
         background-color: #454545;
         border-style: solid;
         border-width: 1px;
         border-color: #6E6E6E #303030 #303030 #6E6E6E;
-        width: 130px;
+        width: 180px;
     }
 
     .whenWhere p {
         font-style: italic;
-        font-size: 9px;
+        font-size: 12px;
+        font-weight: bold;
     }
 </style>
 EOD;

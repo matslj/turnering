@@ -34,6 +34,7 @@ define('DBT_Statistics',	DB_PREFIX . 'Statistics');
 define('DBT_Sida',		    DB_PREFIX . 'Sida');
 define('DBT_Match',		    DB_PREFIX . 'Match');
 define('DBT_Tournament',	DB_PREFIX . 'Tournament');
+define('DBT_PointFilter',	DB_PREFIX . 'PointFilter');
 
 // Stored routines concerning page and pictures
 define('DBSP_PInsertOrUpdateSida',	           DB_PREFIX . 'PInsertOrUpdateSida');
@@ -72,6 +73,11 @@ define('DBSP_CreateTournament',             DB_PREFIX . 'PCreateTournament');
 define('DBSP_EditTournament',               DB_PREFIX . 'PEditTournament');
 define('DBSP_EditSelectedValuesTournament', DB_PREFIX . 'PEditSelectedValuesTournament');
 define('DBSP_ChangeActiveTournament',       DB_PREFIX . 'PChangeActiveTournament');
+define('DBSP_SetJsonScoreProxyTournament', DB_PREFIX . 'PSetJsonScoreProxyTournament');
+
+// Stored routines concerning point filter
+define('DBSP_CreatePointFilter',            DB_PREFIX . 'PCreatePointFilter');
+define('DBSP_EditPointFilter',              DB_PREFIX . 'PEditPointFilter');
 
 // Triggers
 define('DBTR_TInsertUser',	                DB_PREFIX . 'TInsertUser');

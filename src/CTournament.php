@@ -22,6 +22,8 @@ class CTournament {
     private $tournamentDateTom;  // class DateTime
     private $creationDate;
     
+    private $useProxy;
+    
     // Rounds - Matchups/Matches
     private $tournamentMatrix;
     
@@ -29,11 +31,13 @@ class CTournament {
     private $currentRound;
     private $currentRoundEdited;
     private $currentRoundComplete;
-    
+ 
     // Tiebreakers
     private $tieBreakers; // array of ITiebreak interface implementing objects
+    
+    private $scoreProxyManager;
 
-    private function __construct($id, $creator, $place, $nrOfRounds, $type, $active, $byeScore, $tournamentDateFrom, $tournamentDateTom, $creationDate, $theTieBreakers) {
+    private function __construct($id, $creator, $place, $nrOfRounds, $type, $active, $byeScore, $tournamentDateFrom, $tournamentDateTom, $creationDate, $theTieBreakers, $theUseProxy, $theProxyFilter) {
         $this->id = $id;
         $this->creator = $creator;
         $this->place = $place;
@@ -56,9 +60,14 @@ class CTournament {
                 case "mostwon":
                     $this->tieBreakers[] = new tiebreak_CMostWon();
                     break;
+                case "orgscore":
+                    $this->tieBreakers[] = new tiebreak_COrgScore();
+                    break;
             }
         }
-       
+        $this->useProxy = $theUseProxy;
+        $this->scoreProxyManager = new CScoreProxyManager($theProxyFilter);
+
     }
     
     public static function getEmptyInstance() {
@@ -66,7 +75,7 @@ class CTournament {
         self::$LOG = logging_CLogger::getInstance(__FILE__);
         
         $user = CUserData::getInstance();
-        return new self(0, $user, "", 0, "swiss", false, 0, null, null, null);
+        return new self(0, $user, "", 0, "swiss", false, 0, null, null, null, false, null);
     }
     
     public static function getInstanceById($theDatabase, $theTournamentId) {
@@ -90,7 +99,9 @@ class CTournament {
                 createdTournament AS creationDate,
                 dateFromTournament AS dateFrom,
                 dateTomTournament AS dateTom,
-                tieBreakersTournament AS tieBreakers
+                tieBreakersTournament AS tieBreakers,
+                useProxyTournament AS useProxy,
+                jsonScoreProxyTournament as scoreFilter
             FROM {$tTournament}
             WHERE
                 idTournament = {$theTournamentId};
@@ -108,7 +119,8 @@ EOD;
              $users = user_CUserRepository::getInstance($theDatabase);
              $user = $users->getUser($row->creator);
              $active = $row->active != 0 ? true : false;
-             $tempTournament = new self($row->id, $user, $row->place, $row->rounds, $row->type, $active, $row->byeScore, $row->dateFrom, $row->dateTom, $row->creationDate, $row->tieBreakers);
+             $useProxy = $row->useProxy != 0 ? true : false;
+             $tempTournament = new self($row->id, $user, $row->place, $row->rounds, $row->type, $active, $row->byeScore, $row->dateFrom, $row->dateTom, $row->creationDate, $row->tieBreakers, $useProxy, $row->scoreFilter);
          }
          $res->close();
          
@@ -122,7 +134,7 @@ EOD;
              $tempTournament->currentRoundEdited = false;
              $tempTournament->currentRoundComplete = true;
              self::$LOG -> debug("before match load. current round: " . $tempTournament->currentRound . " edited: " . $tempTournament->currentRoundEdited . " complete: " . $tempTournament->currentRoundComplete);
-             $tempTournament->tournamentMatrix = self::populateMatrixFromDB($theDatabase, $tempTournament->currentRound, $tempTournament->currentRoundEdited, $tempTournament->currentRoundComplete);
+             $tempTournament->tournamentMatrix = self::populateMatrixFromDB($theDatabase, $tempTournament->scoreProxyManager, $tempTournament->currentRound, $tempTournament->currentRoundEdited, $tempTournament->currentRoundComplete);
              self::$LOG -> debug("after match load. current round: " . $tempTournament->currentRound . " edited: " . $tempTournament->currentRoundEdited . " complete: " . $tempTournament->currentRoundComplete);
          }
          return $tempTournament;
@@ -258,7 +270,15 @@ EOD;
     public function getCurrentRound() {
         return $this->currentRound;
     }
-            
+    
+    public function getUseProxy() {
+        return $this->useProxy;
+    }
+    
+    public function getScoreProxyManager() {
+        return $this->scoreProxyManager;
+    }
+              
     // ***************************************************************************************
     // **      Below are business methods
     // **
@@ -565,11 +585,12 @@ EOD;
             if ($key != $theNewRound || empty($theNewRound)) {
                 foreach ($value as $valueInner) {
                     //self::$LOG -> debug(print_r($valueInner, true));
-                     //self::$LOG -> debug("valueInner: " . $valueInner);
+                    //self::$LOG -> debug("valueInner: " . $valueInner);
+
                     if ($player->getId() == $valueInner->getPlayerOne()->getId()) {
-                        $retVal += $valueInner->getScorePlayerOne();
+                        $retVal += $this->useProxy ? $valueInner->getProxyScorePlayerOne() : $valueInner->getScorePlayerOne();
                     } else if($player->getId() == $valueInner->getPlayerTwo()->getId()) {
-                        $retVal += $valueInner->getScorePlayerTwo();
+                        $retVal += $this->useProxy ? $valueInner->getProxyScorePlayerTwo() : $valueInner->getScorePlayerTwo();
                     }
                 }
             }
@@ -674,7 +695,7 @@ EOD;
         }
     }
     
-    private static function populateMatrixFromDB($theDatabase, &$theCurrentRound, &$theCurrentRoundEdited, &$theCurrentRoundComplete) {
+    private static function populateMatrixFromDB($theDatabase, $theScoreProxyManager, &$theCurrentRound, &$theCurrentRoundEdited, &$theCurrentRoundComplete) {
         $userRepository = user_CUserRepository::getInstance($theDatabase);
         
         // Get the tablenames
@@ -710,7 +731,17 @@ EOD;
              }
 
              $tempPlayerTwo = empty($row->idPlayerTwo) ? user_CUserData::getEmptyInstance() : $userRepository->getUser($row->idPlayerTwo);
-             $tempMatrix[$row->round][] = new CMatch($row->id, $row->round, $userRepository->getUser($row->idPlayerOne), $tempPlayerTwo, $row->scorePlayerOne, $row->scorePlayerTwo, $row->lastUpdate);
+             
+             // Create a Match object
+             $aMatch = new CMatch($row->id, $row->round, $userRepository->getUser($row->idPlayerOne), $tempPlayerTwo, $row->scorePlayerOne, $row->scorePlayerTwo, $row->lastUpdate);
+             
+             // Create proxy scores (if no proxy filter exists in db a default proxy filter will be used).
+             $proxyFilter = $theScoreProxyManager->getScoreProxyForDiffBetweenPlayers($row->scorePlayerOne, $row->scorePlayerTwo);
+             $aMatch->setProxyScorePlayerOne($proxyFilter->getScorePlayerOne());
+             $aMatch->setProxyScorePlayerTwo($proxyFilter->getScorePlayerTwo());
+             
+             $tempMatrix[$row->round][] = $aMatch;     
+             
              $updated = true;
              $theCurrentRound = $row->round;
              // if player two is empty (player one byed) then 'edited' should not be considered for this row
@@ -731,7 +762,7 @@ EOD;
     }
     
     public function getRoundAsHtml($theRound, $theEditable = false, $admin = false) {
-        
+        self::$LOG -> debug("###################### NY RUNDA ########################");
         // Link to images
         $imageLink = WS_IMAGES;
         
@@ -769,23 +800,33 @@ EOD;
         $html .= "<h2>Omgång {$theRound}{$thePanel}</h2>";
         
         foreach ($tempRound as $value) {
+            self::$LOG -> debug("--- At start of loop.");
             $html .= "<div class='matchup'>";
             $html .= "<table>";
             if ($value->getPlayerOne()->isEmptyInstance() || $value->getPlayerTwo()->isEmptyInstance()) {
+                self::$LOG -> debug("------- Found byed player");
                 $byedPlayer = $value->getPlayerOne()->isEmptyInstance() ? $value->getPlayerTwo() : $value->getPlayerOne();
             } else {
+                self::$LOG -> debug("------- Drawing match.");
+                self::$LOG -> debug(print_r($value, true));
                 $html .= "<tr><td>{$value->getPlayerOne()->getAccount()}</td><td class='marker'>-</td><td>{$value->getPlayerTwo()->getAccount()}</td></tr>";
-                $html .= "<tr><td>";
+                $html .= "<tr class='inputRow'><td class='pLeft'>";
+                if ($this->useProxy) {
+                    $html .= "<span class='proxyLeft'>({$value->getProxyScorePlayerOne($this->id)})</span>";
+                }
                 if ($theEditable && ($value->isPlayerInMatch($loggedOnUser->getId()) || $loggedOnUser->isAdmin())) {
                     $html .= "<input id='playerOneScore#{$value->getId()}' class='scoreInput' type='text' name='playerOneScore#{$value->getId()}' value='{$value->getScorePlayerOne()}' />";
                 } else {
-                    $html .= $value->getScorePlayerOne();
+                    $html .= "<div style='display: inline-block; width: 30px;'>" . $value->getScorePlayerOne() . "</div>";
                 }
-                $html .= "</td><td>&nbsp;</td><td>";
+                $html .= "</td><td>&nbsp;</td><td class='pRight'>";
                 if ($theEditable && ($value->isPlayerInMatch($loggedOnUser->getId()) || $loggedOnUser->isAdmin())) {
                     $html .= "<input id='playerTwoScore#{$value->getId()}' class='scoreInput' type='text' name='playerTwoScore#{$value->getId()}' value='{$value->getScorePlayerTwo()}' />";
                 } else {
-                    $html .= $value->getScorePlayerTwo();
+                    $html .= "<div style='display: inline-block; width: 30px;'>" . $value->getScorePlayerTwo() . "</div>";
+                }
+                if ($this->useProxy) {
+                    $html .= "<span class='proxyRight'>({$value->getProxyScorePlayerTwo($this->id)})</span>";
                 }
                 $html .= "</td></tr>";
             }
@@ -801,6 +842,8 @@ EOD;
             $html .= "</div>";
         }
         $html .= "</div> <!-- End div with round id -->";
+        
+        self::$LOG -> debug("#### Klaaaaaaar");
         
         return $html;
     }

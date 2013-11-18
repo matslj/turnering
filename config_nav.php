@@ -56,6 +56,7 @@ define('SELECTABLE_ARMIES', serialize($selectableArmies));
 $selectableTieBreakers = Array (
     'Inbördes möte' => 'internalwinner',
     'Flest vunna' => 'mostwon',
+    'Original poäng' => 'orgscore',
 );
 define('SELECTABLE_TIE_BREAKERS', serialize($selectableTieBreakers));
 ?>

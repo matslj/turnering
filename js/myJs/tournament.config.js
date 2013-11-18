@@ -14,16 +14,49 @@
 // This is for the PTournament.php page
 tournament.namespace('config');
 
+/**
+ * Tournament config class. First some form-mapping constants and datepattern and
+ * then the methods.
+ */
 tournament.config = {
     // Id constants
-    idDateFrom  : "input#dateFrom",
-    idDateTom   : "input#dateTom",
-    idInfo      : "td#info",
-    idForm      : "#turneringForm",
+    idDateFrom        : "input#dateFrom",
+    idDateTom         : "input#dateTom",
+    idInfo            : "td#info",
+    idForm            : "#turneringForm",
+    idPointFilterForm : "#dialogPointFilterForm",
+    idPointFilterCbx  : "#pointFilterCbx",
+    idPointFilterDiv  : "#pointFilterDiv",
+    
+    // The selector for the score filter.
+    sfSelector        : "td.sfCell input",
+    nrInputOnRow      : 4,
+    
+    sfOrgFrom         : "orgFrom",
+    sfOrgTom          : "orgTom",
+    sfNewFrom         : "newFrom",
+    sfNewTom          : "newTom",
     
     // Date pattern
-    datePattern : "yy-mm-dd",
+    datePattern       : "yy-mm-dd",
     
+    rowIdError        : "Error: rowId must be an integer.",
+    inputError        : "Varje fält måste innehålla en siffra och för varje rad så måste den andra kolumnen ha större värden än den första.",
+    
+    /**
+     * Initializes javascript for the tournament config page.
+     * <ul>
+     * <li>Initializes date pickers (jquery ui) for from and tom dates.
+     * <li>Initializes toggler score filter checkbox. When the checkbox is checked
+     *     a div becomes unhidden (it contains a clickable link which in turn, when
+     *     clicked, presents a score filter dialog). Deselecting the checkbox hides
+     *     the div again.
+     * <li>Initializing form-plugin for form processing.
+     * <li>Initializing keyup listener on input fields (so that I can inform the user
+     *     that something has been changed and needs to be saved). Simple but 
+     *     functional.
+     * </ul>
+     */
     init : function () {
         $(this.idDateFrom).datepicker({
             onSelect : function() {
@@ -39,6 +72,16 @@ tournament.config = {
             minDate: 0,
             dateFormat: tournament.config.datePattern
         });
+        
+        // Code for toggling filter link
+        var cbxChecked = $(tournament.config.idPointFilterCbx).attr('checked');
+        if (!cbxChecked) {
+            $(tournament.config.idPointFilterDiv).hide();
+        }
+        $(tournament.config.idPointFilterCbx).click(function() {
+            $(tournament.config.idPointFilterDiv).toggle(400);
+            $(tournament.config.idInfo).html(tournament.infoMsg);
+        });
 
         $(this.idForm).ajaxForm({
             dataType    : "json",
@@ -50,6 +93,15 @@ tournament.config = {
             $(tournament.config.idInfo).html(tournament.infoMsg);
         });
     },
+    
+    /** 
+     * Validates tournament configuration form input on the client side.
+     * Method signature according to form-plugin method signature.
+     * 
+     * @param formData not used
+     * @param jqForm not used
+     * @param options not used
+     */
     validate : function (formData, jqForm, options) {
         tournament.clearErrorMsg();
         
@@ -98,10 +150,109 @@ tournament.config = {
         }
         $(tournament.config.idInfo).html('');
     },
+    
+    /**
+     * Callback method for the ajax call which is set up in the init method.
+     * If errors are returned from the server, these are presented here.
+     */
     response : function (data) {
         tournament.clearErrorMsg();
         if (data) {
             tournament.createErrorMsg(data);
+        }
+    },
+    
+    updateScoreFilter : function (theTournamentId, callback) {
+        // First extract form data into an array of objects
+        var scoreFilter = [];
+        var sfObject = null;
+        // var lastRowId = -1;
+        var lastValue = -1;
+        var inputCount = 1;
+        var errorFound = false;
+        var actionUrl = $(tournament.config.idPointFilterForm).attr("action");
+        console.log("actionUrl: " + actionUrl);
+        
+        $(tournament.config.sfSelector).each( function() {
+            
+            var _self = $(this);
+            
+            var re = /^\d+$/g; // every input field must have at least one digit and only digits
+            if (!re.test(_self.val())) {
+                _self.addClass("errorBackground");
+                errorFound = true;
+            } else {
+                _self.removeClass("errorBackground");
+            }
+            
+            var selfVal = parseInt(_self.val(), 10);
+            
+            if (inputCount == 1) {
+                sfObject = {};
+                scoreFilter.push(sfObject);
+                lastValue = selfVal;
+            } else if (inputCount == 2) {
+                if (lastValue > selfVal) {
+                    _self.addClass("errorBackground");
+                    errorFound = true;
+                    console.log("error: " + lastValue + " - " + selfVal);
+                }
+            }
+            
+            
+            // Pick out the index for each row (its behind the hashmark on the
+            // id attribute on the input fields).
+//            var tempId = $(this).attr('id');
+//            var indexOfHashmark = tempId.indexOf('#');
+//            var rowId = parseInt(tempId.substring(indexOfHashmark + 1), 10);
+//            
+//            if (isNaN(rowId)) {
+//                throw new Error(tournament.config.rowIdError)
+//            }
+//
+//            // Create a new object if the last id and new id does not match.
+//            // Also push the new object to the list of objects.
+//            if (rowId != lastRowId) {
+//                // console.log("Nytt objekt skapas! rowId: " + rowId + " lastRowId: " + lastRowId);
+//                lastRowId = rowId;
+//                sfObject = {};
+//                scoreFilter.push(sfObject);
+//            }
+            var theClass = _self.attr("class");
+            sfObject[theClass] = selfVal;
+            
+            if (inputCount == tournament.config.nrInputOnRow) {
+                inputCount = 1;
+            } else {
+                inputCount++;
+            }
+        });
+        
+        if (errorFound) {
+            data = {};
+            data.errorMsg = tournament.config.inputError;
+            callback(data);
+        } else {
+            var jsonScore = JSON.stringify(scoreFilter);
+
+            console.log(jsonScore);
+
+            // Förbered Ajax-call
+            $.ajax({
+                url: actionUrl,
+                type:'POST',
+                dataType: "json",
+                data: {"tournamentId": theTournamentId, "scores":jsonScore},
+                success: function(data) {
+//                    if (data.status == 'ok') {
+//                        console.log("klar!!");
+//                    } else {
+//                        console.log(data.message);
+//                    }
+                    data = {};
+                    callback(data);
+                }
+            });
         }
     }
     

@@ -214,7 +214,7 @@ END;
 --
 
 SET @aSidaId = 0;
-CALL {$spPInsertOrUpdateSida}(@aSidaId, 2, 'PIndex.php', 'Battle på DMF!!', 'Test-text som admin kan ändra. Alla icke admin-titlar går också att ändra.', 0);
+CALL {$spPInsertOrUpdateSida}(@aSidaId, 2, 'PIndex.php', 'Turneringsdags', 'Test-text som admin kan ändra. Alla icke admin-titlar går också att ändra.', 0);
 SET @aSidaId = 0;
 CALL {$spPInsertOrUpdateSida}(@aSidaId, 2, 'PAdminIndex.php', 'Ändra mig', 'Ändra mig', 0);
 

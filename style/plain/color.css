@@ -207,6 +207,10 @@ tfoot td {
 	background: #A65C00;
 }
 
+div.dialog form fieldset table td label {
+    color: #000;
+}
+
 /* Color specifics for PPictureUserInterest.php */
 div.folderHeader {
     color: #FFAA40;

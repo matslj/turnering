@@ -102,7 +102,12 @@ switch ($gPage) {
     case 'matchupp':         require_once(TP_PAGESPATH . 'page/PPairingOfMatchesProcess.php'); break;
     case 'matchupap':        require_once(TP_PAGESPATH . 'page/PPairingOfMatchesActionProcess.php'); break;
     case 'scoreboard':       require_once(TP_PAGESPATH . 'page/PScoreboard.php'); break;
-
+    
+    // 
+    // User tournaments
+    //
+    case 'mytournaments':    require_once(TP_PAGESPATH . 'page/PTournaments.php'); break;
+    
     //
     // Default case, trying to access some unknown page, should present some error message
     // or show the home-page
