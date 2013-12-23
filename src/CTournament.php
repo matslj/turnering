@@ -18,9 +18,9 @@ class CTournament {
     private $type;
     private $active;
     private $byeScore;
-    private $tournamentDateFrom; // class DateTime
-    private $tournamentDateTom;  // class DateTime
-    private $creationDate;
+    private $tournamentDateFrom; // class CDate
+    private $tournamentDateTom;  // class CDate
+    private $creationDate;       // class CDate
     
     private $useProxy;
     
@@ -37,13 +37,13 @@ class CTournament {
     
     private $scoreProxyManager;
 
-    private function __construct($id, $creator, $place, $nrOfRounds, $type, $active, $byeScore, $tournamentDateFrom, $tournamentDateTom, $creationDate, $theTieBreakers, $theUseProxy, $theProxyFilter) {
+    private function __construct($id, $creator, $place, $nrOfRounds, $type, $theActive, $byeScore, $tournamentDateFrom, $tournamentDateTom, $creationDate, $theTieBreakers, $theUseProxy, $theProxyFilter) {
         $this->id = $id;
         $this->creator = $creator;
         $this->place = $place;
         $this->nrOfRounds = $nrOfRounds;
         $this->type = $type;
-        $this->active = $active;
+        $this->active = $theActive != 0 ? true : false;
         $this->byeScore = $byeScore;
         $this->tournamentDateFrom = CDate::getInstanceFromMysqlDatetime($tournamentDateFrom);
         $this->tournamentDateTom = CDate::getInstanceFromMysqlDatetime($tournamentDateTom);
@@ -65,7 +65,7 @@ class CTournament {
                     break;
             }
         }
-        $this->useProxy = $theUseProxy;
+        $this->useProxy = $theUseProxy != 0 ? true : false;
         $this->scoreProxyManager = new CScoreProxyManager($theProxyFilter);
 
     }
@@ -75,7 +75,11 @@ class CTournament {
         self::$LOG = logging_CLogger::getInstance(__FILE__);
         
         $user = CUserData::getInstance();
-        return new self(0, $user, "", 0, "swiss", false, 0, null, null, null, false, null);
+        return new self(0, $user, "", 0, "swiss", 0, 0, null, null, null, 0, null);
+    }
+    
+    public static function getInstanceByParameters($id, $creator, $place, $nrOfRounds, $type, $theActive, $byeScore, $tournamentDateFrom, $tournamentDateTom, $creationDate, $theTieBreakers, $theUseProxy, $theProxyFilter) {
+        return new self($id, $creator, $place, $nrOfRounds, $type, $theActive, $byeScore, $tournamentDateFrom, $tournamentDateTom, $creationDate, $theTieBreakers, $theUseProxy, $theProxyFilter);
     }
     
     public static function getInstanceById($theDatabase, $theTournamentId) {
@@ -118,9 +122,7 @@ EOD;
              self::$LOG -> debug("tttt");
              $users = user_CUserRepository::getInstance($theDatabase);
              $user = $users->getUser($row->creator);
-             $active = $row->active != 0 ? true : false;
-             $useProxy = $row->useProxy != 0 ? true : false;
-             $tempTournament = new self($row->id, $user, $row->place, $row->rounds, $row->type, $active, $row->byeScore, $row->dateFrom, $row->dateTom, $row->creationDate, $row->tieBreakers, $useProxy, $row->scoreFilter);
+             $tempTournament = new self($row->id, $user, $row->place, $row->rounds, $row->type, $row->active, $row->byeScore, $row->dateFrom, $row->dateTom, $row->creationDate, $row->tieBreakers, $row->useProxy, $row->scoreFilter);
          }
          $res->close();
          
@@ -136,6 +138,8 @@ EOD;
              self::$LOG -> debug("before match load. current round: " . $tempTournament->currentRound . " edited: " . $tempTournament->currentRoundEdited . " complete: " . $tempTournament->currentRoundComplete);
              $tempTournament->tournamentMatrix = self::populateMatrixFromDB($theDatabase, $tempTournament->scoreProxyManager, $tempTournament->currentRound, $tempTournament->currentRoundEdited, $tempTournament->currentRoundComplete);
              self::$LOG -> debug("after match load. current round: " . $tempTournament->currentRound . " edited: " . $tempTournament->currentRoundEdited . " complete: " . $tempTournament->currentRoundComplete);
+         } else {
+             return self::getEmptyInstance();
          }
          return $tempTournament;
     }
@@ -277,6 +281,11 @@ EOD;
     
     public function getScoreProxyManager() {
         return $this->scoreProxyManager;
+    }
+    
+    public function isUpcoming() {
+        $currentTime = time();
+        return ($currentTime <= $this->tournamentDateFrom);
     }
               
     // ***************************************************************************************
@@ -853,6 +862,15 @@ EOD;
         foreach ($this->tournamentMatrix as $key => $value) {
             $editable = $key == $this->currentRound;
             $html .= $this->getRoundAsHtml($key, $editable, $admin);
+        }
+        $html .= "</div> <!-- End of allRounds div -->";
+        return $html;
+    }
+    
+    public function getAllRoundsAsHtmlNoEdit() {
+        $html = "<div id='allRounds'>";
+        foreach ($this->tournamentMatrix as $key => $value) {
+            $html .= $this->getRoundAsHtml($key, false, false);
         }
         $html .= "</div> <!-- End of allRounds div -->";
         return $html;

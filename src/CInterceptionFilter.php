@@ -93,6 +93,15 @@ class CInterceptionFilter {
 	public function IsUserMemberOfGroupAdminOrIsCurrentUser($aUserId) {
 		return $this -> uo -> isAdmin() || $this -> uo -> isUser($aUserId);
 	}
+    
+        // ------------------------------------------------------------------------------------
+	//
+	// Check if user belongs to the admin group or is a specific user.
+	//
+	public function IsAdminOrIsCurrentUserOrTerminate($aUserId) {
+		if (!($this -> uo -> isAdmin() || $this -> uo -> isUser($aUserId)))
+            die('Unauthorized access. Terminating');
+	}
         
         // ------------------------------------------------------------------------------------
 	//

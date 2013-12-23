@@ -54,9 +54,85 @@ class CTournamentManager {
         $tempTournament->createOrRecreateRound($theDatabase, $theRound);
     }
     
+    public function getActiveTournament($theDatabase) {
+
+        $uo = CUserData::getInstance();
+        $userId = $uo -> getId();
+        
+        // Get the tablenames
+        $tTournament       = DBT_Tournament;
+
+        $query = <<< EOD
+            SELECT
+                idTournament AS id,
+                creatorTournament_idUser AS creator,
+                placeTournament AS place, 
+                roundsTournament AS rounds, 
+                typeTournament AS type, 
+                activeTournament AS active,
+                byeScoreTournament AS byeScore,
+                createdTournament AS creationDate,
+                dateFromTournament AS dateFrom,
+                dateTomTournament AS dateTom,
+                tieBreakersTournament AS tieBreakers,
+                useProxyTournament AS useProxy,
+                jsonScoreProxyTournament as scoreFilter
+            FROM {$tTournament}
+            WHERE creatorTournament_idUser = {$userId}
+                AND activeTournament = true
+            ORDER BY dateFrom DESC
+            LIMIT 1;
+EOD;
+            
+        $res = $theDatabase->Query($query);
+    
+        $row = $res->fetch_object();
+        
+        $t = null;
+        
+        if (!empty($row)) {
+            $t = CTournament::getInstanceByParameters($row->id, $uo, $row->place, $row->rounds, $row->type, $row->active, $row->byeScore, $row->dateFrom, $row->dateTom, $row->creationDate, $row->tieBreakers, $row->useProxy, $row->scoreFilter);
+        }
+        
+        $res->close();
+         
+        return $t;
+    }
+    
+    public function createTournament($theDatabase) {
+//        $tournament = $this->getActiveTournament($theDatabase);
+//        if (!empty($tournament)) {
+//            return $tournament;
+//        } else {
+            $uo = CUserData::getInstance();
+            $userId = $uo -> getId();
+            $spCreateTournament = DBSP_CreateTournament;
+            $query = "CALL {$spCreateTournament}({$userId}, '', 3, 'Swiss', true, 1000, NOW(), NOW(), 'internalwinner', false, null, @aTournamentId);";
+            $query .= "SELECT @aTournamentId AS id;";
+
+            // Perform the query
+            $res = $theDatabase->MultiQuery($query);
+
+            // Use results
+            $results = Array();
+            $theDatabase->RetrieveAndStoreResultsFromMultiQuery($results);
+
+            // Retrieve and update the id of the Match-object
+            $row = $results[1]->fetch_object();
+            $tId = $row->id;
+
+            // Close the result set
+            $results[1]->close();
+            
+            $t = CTournament::getInstanceByParameters($tId, $uo, "", 3, "Swiss", 1, 1000, null, null, null, 'internalwinner', 0, null);
+            
+            return $t;
+//        }
+    }
+    
     public function getTournaments($theDatabase, $byUser = false) {
         
-        self::$LOG -> debug(" **** In CTournamentManager in getAllTournaments() **** ");
+        self::$LOG -> debug(" **** In CTournamentManager in getTournaments() **** ");
         
         $byUserHtml = "";
         
@@ -93,12 +169,15 @@ EOD;
          $returnArray = array();
          $res = $theDatabase->Query($query);
     
+         $users = user_CUserRepository::getInstance($theDatabase);
+         
          while($row = $res->fetch_object()) {
              $t = CTournament::getEmptyInstance();
              self::$LOG -> debug(" **** In aaa() **** ");
              $t->setId($row->id);
              self::$LOG -> debug(" **** In bbb() **** ");
-             $t->setCreator($row->creator);
+             $user = $users->getUser($row->creator);
+             $t->setCreator($user);
              self::$LOG -> debug(" **** In ccc() **** ");
              $t->setPlace($row->place);
              self::$LOG -> debug(" **** In ddd() **** ");
@@ -121,6 +200,18 @@ self::$LOG -> debug(" **** In deewwwwrr() **** ");
          $res->close();
          
          return $returnArray;
+    }
+    
+    public function deleteTournament($theDatabase, $theTournamentId) {
+        $spDeleteTournament = DBSP_DeleteTournament;
+        $queryDelete = "CALL {$spDeleteTournament}({$theTournamentId});";
+        $resDel = $theDatabase->MultiQuery($queryDelete);
+        $nrOfStatements = $theDatabase->RetrieveAndIgnoreResultsFromMultiQuery();
+        
+        if($nrOfStatements != 1) {
+            // Delete not OK
+            self::$LOG -> debug("ERROR: Kunde inte radera turnering med id: " . $theTournamentId . " - number of statements: " . $nrOfStatements);
+        }
     }
     
     public function getScoreboardAsHtml($theDatabase) {

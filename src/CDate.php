@@ -23,7 +23,12 @@ class CDate {
     
     public static function getInstanceFromMysqlDatetime($mysqlDate) {
         $retDate = null;
-        $phpdate = strtotime($mysqlDate);
+        $phpdate = null;
+        if ($mysqlDate == null) {
+            $phpdate = time();
+        } else {
+            $phpdate = strtotime($mysqlDate);
+        }
         if ($phpdate) {
             $retDate = new self($phpdate);
         }

@@ -43,6 +43,8 @@ tournament.config = {
     rowIdError        : "Error: rowId must be an integer.",
     inputError        : "Varje fält måste innehålla en siffra och för varje rad så måste den andra kolumnen ha större värden än den första.",
     
+    responseCallbackFunction : null,
+    
     /**
      * Initializes javascript for the tournament config page.
      * <ul>
@@ -57,7 +59,8 @@ tournament.config = {
      *     functional.
      * </ul>
      */
-    init : function () {
+    init : function (responseCallback) {
+        tournament.config.responseCallbackFunction = responseCallback;
         $(this.idDateFrom).datepicker({
             onSelect : function() {
                 $(tournament.config.idInfo).html(tournament.infoMsg);
@@ -104,7 +107,10 @@ tournament.config = {
      */
     validate : function (formData, jqForm, options) {
         tournament.clearErrorMsg();
-        
+        if ($('input[name=dateFrom]').prop('disabled')) {
+            $(tournament.config.idInfo).html('');
+            return true;
+        }
         var errors = [];
         var dateFrom = $('input[name=dateFrom]').fieldValue()[0]; 
         var hourFrom = $('input[name=hourFrom]').fieldValue()[0];
@@ -158,7 +164,19 @@ tournament.config = {
     response : function (data) {
         tournament.clearErrorMsg();
         if (data) {
-            tournament.createErrorMsg(data);
+            if (data.errorMsg){
+                tournament.createErrorMsg(data.errorMsg);
+            } else if (data.id) {
+                
+                if (data.aktiv === true) {
+                    $("#mtt" + data.id).removeClass("aktiv");
+                    $("#mtd" + data.id).removeClass("aktiv");
+                } else {
+                    $("#mtt" + data.id).addClass("aktiv");
+                    $("#mtd" + data.id).addClass("aktiv");
+                }
+                tournament.config.responseCallbackFunction(data.aktiv);
+            }
         }
     },
     

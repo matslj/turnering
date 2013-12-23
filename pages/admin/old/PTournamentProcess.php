@@ -24,6 +24,8 @@ $intFilter = new CInterceptionFilter();
 
 $intFilter->FrontControllerIsVisitedOrDie();
 $intFilter->UserIsSignedInOrRecirectToSignIn();
+// Check so that logged in user is admin
+$intFilter->IsUserMemberOfGroupAdminOrTerminate();
 
 // -------------------------------------------------------------------------------------------
 //
@@ -42,27 +44,8 @@ $tieBreak1 	= $pc->POSTisSetOrSetDefault('tbone',     '');
 $tieBreak2	= $pc->POSTisSetOrSetDefault('tbtwo',     '');
 $tieBreak3	= $pc->POSTisSetOrSetDefault('tbthree',     '');
 $useProxy	= $pc->POSTisSetOrSetDefault('pointFilterCbx', 'false');
-$active     = $pc->POSTisSetOrSetDefault('activeFilterCbx', 'false');
-
-$tempOnlyActiveUpdated = empty($dateFrom)
-                      && empty($dateTom)
-                      && empty($hourFrom)
-                      && empty($minuteFrom)
-                      && empty($hourTom)
-                      && empty($minuteTom)
-                      && empty($byeScore)
-                      && empty($nrOfRounds)
-                      && empty($tieBreak1)
-                      && empty($tieBreak2)
-                      && empty($tieBreak3)
-//                      && empty($useProxy)
-                      && !empty($tId);
 
 $log->debug("##### useProxy: " . $useProxy);
-
-if (strcmp($active, "true") != 0) {
-    $active = "false";
-}
 
 if (strcmp($useProxy, "true") != 0) {
     $useProxy = "false";
@@ -190,56 +173,25 @@ $mysqli = $db->Connect();
 
 // Get current tournament data
 $tournament = CTournament::getInstanceById($db, $tId);
-
-// Terminate if logged in user is not admin or the creator of the tournament
-$intFilter->IsAdminOrIsCurrentUserOrTerminate($tournament->getCreator()->getId());
-
 $log->debug("nrofrounds: " . $nrOfRounds . " currround: " . $tournament->getCurrentRound());
 if ($nrOfRounds < $tournament->getCurrentRound()) {
-    //$log->debug("HÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄR: ");
+    $log->debug("HÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄR: ");
     $errorMsg = "Totalt antal rundor måste vara fler än antalet redan spelade rundor.";
     $errorMsgArray[] = $errorMsg;
     $errorFound = true;
 }
 
 if ($errorFound) {
-    if ($tempOnlyActiveUpdated) {
-        $spChangeActiveTournament = DBSP_ChangeActiveTournament;
-        $query = "CALL {$spChangeActiveTournament}({$tId}, {$active});";
-        $res = $db->MultiQuery($query);
-        $nrOfStatements = $db->RetrieveAndIgnoreResultsFromMultiQuery();
-        $log -> debug("Number of statements: " . $nrOfStatements);
-        // Must be exactly one successful statement.
-        if($nrOfStatements != 1) {
-            $_SESSION['errorMessage']	= "Fel: Det gick inte att uppdatera databasen";
-        }
-        $mysqli->close();
-        $json = <<< EOD
-        {
-            "id": "{$tId}",
-            "aktiv": {$active}
-        }
-EOD;
-        echo $json;
-        exit;
-    } else {
-        $mysqli->close();
-        $tempErrMsg = json_encode($errorMsgArray);
-        $json = <<< EOD
-        {
-            "errorMsg": {$tempErrMsg},
-            "id": {$tId}
-        }
-EOD;
-        echo $json;
-        exit;
-    }
+    $mysqli->close();
+    $json = json_encode($errorMsgArray);
+echo $json;
+exit;
 }
 
 $dateFormat = "Y-m-d H:i:s";
 
 $spEditSelectedValuesTournament = DBSP_EditSelectedValuesTournament;
-$query = "CALL {$spEditSelectedValuesTournament}({$tId}, {$nrOfRounds}, {$byeScore}, '{$df->format($dateFormat)}', '{$dt->format($dateFormat)}', '{$tbResult}', {$useProxy}, {$active});";
+$query = "CALL {$spEditSelectedValuesTournament}({$tId}, {$nrOfRounds}, {$byeScore}, '{$df->format($dateFormat)}', '{$dt->format($dateFormat)}', '{$tbResult}', {$useProxy});";
 
 // Perform the query
 $res = $db->MultiQuery($query);
@@ -252,20 +204,11 @@ if($nrOfStatements != 1) {
 
 $mysqli->close();
 
-    $json = <<< EOD
-        {
-            "id": "{$tId}",
-            "aktiv": {$active}
-        }
-EOD;
-echo $json;
-exit;
-
 // -------------------------------------------------------------------------------------------
 //
 // Redirect to another page
 //
-//$pc->RedirectTo($pc->POSTisSetOrSetDefault('redirect') . "&st={$tId}");
-//exit;
+$pc->RedirectTo($pc->POSTisSetOrSetDefault('redirect'));
+exit;
 
 ?>

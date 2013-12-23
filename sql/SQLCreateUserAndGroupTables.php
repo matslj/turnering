@@ -52,6 +52,7 @@ $spEditTournament               = DBSP_EditTournament;
 $spEditSelectedValuesTournament = DBSP_EditSelectedValuesTournament;
 $spChangeActiveTournament       = DBSP_ChangeActiveTournament;
 $spSetJsonScoreProxyTournament  = DBSP_SetJsonScoreProxyTournament;
+$spDeleteTournament             = DBSP_DeleteTournament;
 
 // Point filter related sps
 $spCreatePointFilter = DBSP_CreatePointFilter;
@@ -317,6 +318,32 @@ BEGIN
 END;
    
 --
+-- SP to delete a Tournament
+--
+DROP PROCEDURE IF EXISTS {$spDeleteTournament};
+CREATE PROCEDURE {$spDeleteTournament}
+(
+    IN aTournamentId INT
+)
+BEGIN
+    -- First delete point filter on tournament
+    DELETE FROM {$tPointFilter}
+    WHERE
+        tRefPointFilter_idTournament = aTournamentId;
+   
+    -- Then delete matches
+    DELETE FROM {$tMatch}
+    WHERE
+        tRefMatch_idTournament = aTournamentId;
+   
+    -- And finally, delete the tournament
+    DELETE FROM {$tTournament}
+    WHERE
+        idTournament = aTournamentId
+    LIMIT 1;
+END;
+   
+--
 -- SP to edit a Tournament
 --
 DROP PROCEDURE IF EXISTS {$spEditSelectedValuesTournament};
@@ -328,7 +355,8 @@ CREATE PROCEDURE {$spEditSelectedValuesTournament}
     IN aDateFrom DATETIME,
     IN aDateTom DATETIME,
     IN aTieBreakers VARCHAR(200),
-    IN anUseProxy BOOL
+    IN anUseProxy BOOL,
+    IN anActive BOOL
 )
 BEGIN
     UPDATE {$tTournament} SET
@@ -337,7 +365,8 @@ BEGIN
             dateFromTournament = aDateFrom,
             dateTomTournament  = aDateTom,
             tieBreakersTournament = aTieBreakers,
-            useProxyTournament = anUseProxy
+            useProxyTournament = anUseProxy,
+            activeTournament = anActive
     WHERE
             idTournament = aTournamentId
     LIMIT 1;

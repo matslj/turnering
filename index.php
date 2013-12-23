@@ -56,7 +56,7 @@ switch ($gPage) {
     // Hem
     // changing from PIndex.php to forum/PIndex.php
     //
-    case 'home':             require_once(TP_PAGESPATH . 'PIndex.php'); break;
+    case 'home':             require_once(TP_PAGESPATH . 'PHome.php'); break;
     case 'about':            require_once(TP_PAGESPATH . 'PAbout.php'); break;
 
     //
@@ -107,6 +107,7 @@ switch ($gPage) {
     // User tournaments
     //
     case 'mytournaments':    require_once(TP_PAGESPATH . 'page/PTournaments.php'); break;
+    case 'mytournamentsp':   require_once(TP_PAGESPATH . 'page/PTournamentsProcess.php'); break;
     
     //
     // Default case, trying to access some unknown page, should present some error message

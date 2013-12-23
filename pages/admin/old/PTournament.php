@@ -70,18 +70,19 @@ $tManager = new CTournamentManager();
 // 3) Get active tournament (each user can only have one active tournament)
 if ($createTournament == 1) {
     $tournament = $tManager->createTournament($db);
-} else if (!empty($selectedTournament)) {
+} else if (!empty($selectedTournament) && $admin) {
     $tournament = $tManager->getTournament($db, $selectedTournament);
+} else {
+    $tournament = $tManager->getActiveTournament($db);
 }
-
-$tournaments = $tManager->getTournaments($db, true);
-
 // $tournament = $tManager->getTournament($db);
 $log->debug("efter trour");
 $mysqli->close();
 
-// Link to images
-$imageLink = WS_IMAGES;
+if ($tournament != null) {
+
+$spManager = $tournament->getScoreProxyManager();
+$log->debug("efter spman");
 
 $needjQuery = TRUE;
 
@@ -99,49 +100,6 @@ $htmlHead = <<<EOD
     <script type='text/javascript' src='{$js}myJs/build-min.js'></script>
     
     <style>
-    
-        #minaTurneringar {
-            float: left;
-            margin-right: 17px;
-        }
-        #minaTurneringar table {
-            border-collapse: collapse;
-            margin-top: 6px;
-        }
-        #minaTurneringar table td {
-            background-color: #FFF;
-            padding: 2px 4px 2px 4px;
-        }
-        #minaTurneringar table td.aktiv {
-            background-color: #C2C2C2;
-        }
-        #minaTurneringar table th {
-            background-color: #808080;
-            text-align: left;
-            color: #C1C1C1;
-            padding: 4px 0 4px 4px;
-            border-bottom: 1px solid #000;
-        }
-        #minaTurneringar table th:first-child {
-            background: #808080 url({$imageLink}/box/AUp2CjA-0.png) no-repeat top left;
-        }
-        #minaTurneringar table th:last-child {
-            background: #808080 url({$imageLink}/box/U55D5VK-1.png) no-repeat top right;
-        }
-        #minaTurneringar table a,
-        #minaTurneringar table a:visited {
-            color: #000;
-        }
-        #minaTurneringar table a:hover {
-            color: #DBDBDB;
-        }
-        #minaTurneringar table tfoot td {
-            height: 6px;
-            background-color: #808080;
-            border-top: 1px solid #000;
-        }
-
-        
         input.date {
             width: 80px;
         }
@@ -240,41 +198,6 @@ $htmlHead = <<<EOD
             padding: 5px;
             background-color: red;
         }
-        
-.button {
-	background-color:#808080;
-	-webkit-border-top-left-radius:10px;
-	-moz-border-radius-topleft:10px;
-	border-top-left-radius:10px;
-	-webkit-border-top-right-radius:10px;
-	-moz-border-radius-topright:10px;
-	border-top-right-radius:10px;
-	-webkit-border-bottom-right-radius:10px;
-	-moz-border-radius-bottomright:10px;
-	border-bottom-right-radius:10px;
-	-webkit-border-bottom-left-radius:10px;
-	-moz-border-radius-bottomleft:10px;
-	border-bottom-left-radius:10px;
-	text-indent:0;
-	display:inline-block;
-	color:#c1c1c1;
-	font-family:Arial;
-	font-size:16px;
-	font-weight:bold;
-	font-style:normal;
-	height:26px;
-	line-height:26px;
-	width:111px;
-	text-decoration:none;
-	text-align:center;
-}.button:hover {
-	background-color:#dfdfdf;
-}.button:active {
-	position:relative;
-	top:1px;
-}
-/* This button was generated using CSSButtonGenerator.com */
-        
     </style>
 EOD;
 
@@ -284,30 +207,10 @@ EOD;
 //
 $urlToProcessPage = "?p=page-save";
 
-$tempJsTournamentId = $tournament == null ? -1 : $tournament->getId();
-$tempJsTournamentActive = "false";
-if ($tournament != null) {
-    $tempJsTournamentActive = $tournament->getActive() ? "true" : "false";
-}
-
 $javaScript = <<<EOD
 (function($){
-    function disableIfInactive(inActive) {
-        if (inActive) {
-            $("#turneringForm input").prop('disabled', false);
-            $("#turneringForm select").prop('disabled', false);
-        } else {
-            $("#turneringForm input").prop('disabled', true);
-            $("#turneringForm select").prop('disabled', true);
-            $("#activeFilterCbx").prop('disabled', false);
-            $("#tId").prop('disabled', false);
-        }
-    }
-
     $(document).ready(function() {
-        tournament.config.init(disableIfInactive);
-        
-        disableIfInactive({$tempJsTournamentActive});
+        tournament.config.init();
         
         $(".scoreFilterTable").contextmenu({
             delegate: ".dbfHTarget",
@@ -368,7 +271,7 @@ $javaScript = <<<EOD
             }
         };
         var formData = {
-            tournamentId: {$tempJsTournamentId}
+            tournamentId: {$tournament->getId()}
         };
         $("#dialogPointFilter").pointFilterDialog(dialogOptions, formData);
         
@@ -420,31 +323,6 @@ EOD;
 
 $htmlRight = "";
 
-$action = "?p=" . $pc->computePage() . "p";
-$redirect = "?p=" . $pc->computePage();
-
-$tournamentsHtml = "";
-$activeTournamentHtml = "";
-foreach ($tournaments as $tempT) {
-    $activeClass = "";
-    if(!$tempT->getActive()) {
-        $activeClass = " class='aktiv'";
-    }
-    $tournamentsHtml .= <<< EOD
-    <tr>
-        <td id="mtt{$tempT->getId()}"{$activeClass}>
-            <a href="{$redirect}&st={$tempT->getId()}">{$tempT->getTournamentDateFrom()->getDate()} - {$tempT->getTournamentDateTom()->getDate()}</a>
-        </td>
-        <td id="mtd{$tempT->getId()}"{$activeClass}>
-            <a href="?p=mytournamentsp&tId={$tempT->getId()}"><img style='vertical-align: bottom; border: 0;' src='{$imageLink}close_16.png' /></a>
-        </td>
-    </tr>
-EOD;
-}
-
-if($tournaments == null || count($tournaments) == 0) {
-    $tournamentsHtml = "<tr><td colspan='2'>Ingen turnering än</td><tr>";
-}
 
 $log->debug("Inför tie breaking!!");
 // -------------------------------------------------------------------------------------------
@@ -462,38 +340,6 @@ function getTieBreakerName($theTb) {
     }
     return "";
 }
-
-// -------------------------------------------------------------------------------------------
-//
-// Create the html
-//
-
-$htmlMain .= <<< EOD
-<div id="minaTurneringar">
-    <a class="button" style="color: #c1c1c1;" href='{$redirect}&c=1'>Ny turnering</a>
-    <table>
-        <thead>
-        <tr>
-            <th>Skapade turneringar</th>
-            <th>&nbsp;</th>
-        </tr>
-        </thead>
-        <tbody>
-        {$tournamentsHtml}
-        </tbody>
-        <tfoot>
-            <tr>
-                <td></td>
-                <td></td>
-            </tr>
-        </tfoot>
-    </table>
-</div>
-EOD;
-        
-if ($tournament != null) {
-$spManager = $tournament->getScoreProxyManager();
-$log->debug("efter spman");
 
 $tbList = $tournament->getTieBreakers();
 $dbTbOne = "";
@@ -515,9 +361,15 @@ $selectTieBreakThree = CHTMLHelpers::getHtmlForSelectableTieBreakers('tieBreakTh
 
 $log->debug("Efter tie breaking!!");
 
-$checked = $tournament->getUseProxy() ? " checked='checked'" : "";
+// -------------------------------------------------------------------------------------------
+//
+// Create the html
+//
 
-$checkedActive = $tournament->getActive() ? " checked='checked'" : "";
+$action = "?p=" . $pc->computePage() . "p";
+$redirect = "?p=" . $pc->computePage();
+
+$checked = $tournament->getUseProxy() ? " checked='checked'" : "";
 
 $htmlMain .= <<< EOD
 <div id="turneringsInfo">
@@ -590,13 +442,6 @@ $htmlMain .= <<< EOD
                     </td>
                 </tr>
                 <tr>
-                    <td class='konfLabel'>&nbsp;</label></td>
-                    <td>
-                        <input id='activeFilterCbx' type="checkbox" name="activeFilterCbx" value="true"{$checkedActive} />
-                        <label for='activeFilterCbx'>Ikryssad = Aktiv turnering</label>
-                    </td>
-                </tr>
-                <tr>
                     <td><button id="updateTournament" style='margin-top: 20px;' type='submit' name='submit' value='update'>Uppdatera</button></td>
                     <td id="info" style='padding-top: 20px;'></td>
                 </tr>
@@ -628,8 +473,9 @@ EOD;
             
 } else {
 
-$htmlMain .= <<<EOD
-Ingen turnering är vald. Skapa en ny turnering eller välj en i listan.
+$htmlMain = <<<EOD
+<h1>Turneringsdata</h1>
+Du har ingen aktiv turnering - vill du skapa en turnering?
 EOD;
 
 }

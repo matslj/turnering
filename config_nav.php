@@ -7,10 +7,12 @@
 // Navigation specific configurations.
 //
 
+// # in the menu below means that the user has to be logged in for this item to show up.
 $menuNavBar = Array (
-        'Hem'           => '?p=home',
-        'Matchups' 	    => '?p=matchup',
-        'Resultatlista' => '?p=scoreboard',
+        'Hem'              => '?p=home',
+        'Matchups' 	       => '?p=matchup',
+        'Resultatlista'    => '?p=scoreboard',
+        '#Konfiguration'    => '?p=admin_tournament',
 );
 define('MENU_NAVBAR', serialize($menuNavBar));
 

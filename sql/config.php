@@ -73,7 +73,8 @@ define('DBSP_CreateTournament',             DB_PREFIX . 'PCreateTournament');
 define('DBSP_EditTournament',               DB_PREFIX . 'PEditTournament');
 define('DBSP_EditSelectedValuesTournament', DB_PREFIX . 'PEditSelectedValuesTournament');
 define('DBSP_ChangeActiveTournament',       DB_PREFIX . 'PChangeActiveTournament');
-define('DBSP_SetJsonScoreProxyTournament', DB_PREFIX . 'PSetJsonScoreProxyTournament');
+define('DBSP_SetJsonScoreProxyTournament',  DB_PREFIX . 'PSetJsonScoreProxyTournament');
+define('DBSP_DeleteTournament',             DB_PREFIX . 'PDeleteTournament');
 
 // Stored routines concerning point filter
 define('DBSP_CreatePointFilter',            DB_PREFIX . 'PCreatePointFilter');

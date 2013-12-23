@@ -177,8 +177,18 @@ EOD;
 
         $nav = "<ul>";
         foreach($menu as $key => $value) {
-            $selected = (strcmp($gPage, substr($value, 3)) == 0) ? " class='sel'" : "";
-            $nav .= "<li{$selected}><a href='{$value}'>{$key}</a></li>";
+            // If a # is found - the user must be logged in for the menu item to be visible
+            $showMenuItem = true;
+            $revKey = $key;
+            if (strpos($key, "#") !== FALSE) {
+                $uo = CUserData::getInstance();
+                $showMenuItem = $uo->isAuthenticated();
+                $revKey = substr($key, 1);
+            }
+            if ($showMenuItem) {
+                $selected = (strcmp($gPage, substr($value, 3)) == 0) ? " class='sel'" : "";
+                $nav .= "<li{$selected}><a href='{$value}'>{$revKey}</a></li>";
+            }
         }
         $nav .= "</ul>";
 

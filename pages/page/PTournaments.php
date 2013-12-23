@@ -118,8 +118,45 @@ $htmlRight = "";
 // Create the html
 //
 
+// Link to images
+$imageLink = WS_IMAGES;
+
 $action = "?p=" . $pc->computePage() . "p";
 $redirect = "?p=" . $pc->computePage();
+$deleteLink = "";
+
+$tournamentsHtml = "";
+$activeTournamentHtml = "";
+foreach ($tournaments as $tournament) {
+    $activeClass = "";
+    if(!$tournament->getActive()) {
+        $activeClass = " class='aktiv'";
+    }
+    $tournamentsHtml .= <<< EOD
+    <tr>
+        <td{$activeClass}>
+            {$tournament->getTournamentDateFrom()->getDate()} - {$tournament->getTournamentDateTom()->getDate()}   
+        </td>
+    </tr>
+EOD;
+//    } else {
+//        
+//        $redirectDelete = $action . "&tId={$tournament->getId()}";
+//        $deleteLink = "<a href='{$redirectDelete}'><img style='border: 0;' src='{$imageLink}play_48.png' /></a>";
+//        $activeTournamentHtml = <<< EOD
+//        <div>{$deleteLink}</div>
+//        <div class="activeTournament">
+//            <p>{$tournament->getTournamentDateFrom()->getDate()}</p>
+//            <p>{$tournament->getPlace()}</p>
+//            <p>{$tournament->getNrOfRounds()}</p>
+//        </div>
+//EOD;
+//    }
+}
+
+if (empty($activeTournamentHtml)) {
+    $activeTournamentHtml = "<a href='?p=admin_tournament&c=1'>Skapa en ny turnering</a>";
+}
 
 $htmlMain .= <<< EOD
 <div id="minaTurneringar">
@@ -129,20 +166,13 @@ $htmlMain .= <<< EOD
         <input type='hidden' name='redirect' value='{$redirect}'>
         <input type='hidden' name='redirect-failure' value='{$redirect}'>
     </form>
-         
+    {$activeTournamentHtml}
     <table>
-EOD;
-foreach ($tournaments as $tournament) {
-$htmlMain .= <<< EOD
-                <tr>
-                    <td class='dateFrom'>{$tournament->getTournamentDateFrom()->getDate()}</td>
-                    <td class='place'>{$tournament->getPlace()}</td>
-                    <td class='place'>{$tournament->getNrOfRounds()}</td>
-                </tr>
-EOD;
-}
-$htmlMain .= <<< EOD
-            </table>
+        <tr>
+            <th>Mina turneringar</th>
+        </tr>
+        {$tournamentsHtml}
+    </table>
 </div>
 EOD;
 
