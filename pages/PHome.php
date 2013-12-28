@@ -26,7 +26,7 @@ $intFilter = new CInterceptionFilter();
 $intFilter->FrontControllerIsVisitedOrDie();
 $img = WS_IMAGES;
 
-$redirect = $pc->computeRedirect();
+$redirect = "?p=past"; // $pc->computeRedirect();
 // $urlToEditPost = "?p=page-edit{$redirect}&amp;page-id=";
 
 // -------------------------------------------------------------------------------------------

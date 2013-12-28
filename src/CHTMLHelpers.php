@@ -127,6 +127,22 @@ class CHTMLHelpers {
         return $retVal;
     }
     
+    public static function getLabelForTieBreakerValue($theValue) {
+
+        $selectableTieBreakers = SELECTABLE_TIE_BREAKERS;
+        $sList = unserialize($selectableTieBreakers);
+        $retVal = $theValue;
+        
+        foreach($sList as $key => $value) {
+            if (strcmp($value, $theValue) == 0) {
+                $retVal = $key;
+                break;
+            }
+        }
+
+        return $retVal;
+    }
+    
     /**
      * Returns all selectable armies as a html <select>.
      * 

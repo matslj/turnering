@@ -104,6 +104,12 @@ switch ($gPage) {
     case 'scoreboard':       require_once(TP_PAGESPATH . 'page/PScoreboard.php'); break;
     
     // 
+    // Tournaments in general
+    //
+    case 'past':    require_once(TP_PAGESPATH . 'page/PPlayedTournament.php'); break;
+    case 'sbd':    require_once(TP_PAGESPATH . 'part/PScoreboard.php'); break;
+    
+    // 
     // User tournaments
     //
     case 'mytournaments':    require_once(TP_PAGESPATH . 'page/PTournaments.php'); break;

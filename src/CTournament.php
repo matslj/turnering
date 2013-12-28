@@ -136,7 +136,7 @@ EOD;
              $tempTournament->currentRoundEdited = false;
              $tempTournament->currentRoundComplete = true;
              self::$LOG -> debug("before match load. current round: " . $tempTournament->currentRound . " edited: " . $tempTournament->currentRoundEdited . " complete: " . $tempTournament->currentRoundComplete);
-             $tempTournament->tournamentMatrix = self::populateMatrixFromDB($theDatabase, $tempTournament->scoreProxyManager, $tempTournament->currentRound, $tempTournament->currentRoundEdited, $tempTournament->currentRoundComplete);
+             $tempTournament->tournamentMatrix = self::populateMatrixFromDB($theDatabase, $tempTournament->id, $tempTournament->scoreProxyManager, $tempTournament->currentRound, $tempTournament->currentRoundEdited, $tempTournament->currentRoundComplete);
              self::$LOG -> debug("after match load. current round: " . $tempTournament->currentRound . " edited: " . $tempTournament->currentRoundEdited . " complete: " . $tempTournament->currentRoundComplete);
          } else {
              return self::getEmptyInstance();
@@ -285,7 +285,11 @@ EOD;
     
     public function isUpcoming() {
         $currentTime = time();
-        return ($currentTime <= $this->tournamentDateFrom);
+        return ($currentTime <= $this->tournamentDateFrom -> getTimestamp());
+    }
+    
+    public function getNrOfRoundsInMatrix() {
+        return count($this->tournamentMatrix);
     }
               
     // ***************************************************************************************
@@ -704,7 +708,7 @@ EOD;
         }
     }
     
-    private static function populateMatrixFromDB($theDatabase, $theScoreProxyManager, &$theCurrentRound, &$theCurrentRoundEdited, &$theCurrentRoundComplete) {
+    private static function populateMatrixFromDB($theDatabase, $theId, $theScoreProxyManager, &$theCurrentRound, &$theCurrentRoundEdited, &$theCurrentRoundComplete) {
         $userRepository = user_CUserRepository::getInstance($theDatabase);
         
         // Get the tablenames
@@ -720,6 +724,7 @@ EOD;
                 roundMatch            AS round, 
                 lastUpdateMatch       AS lastUpdate
             FROM {$tMatch}
+            WHERE tRefMatch_idTournament = {$theId}
             ORDER BY round ASC;
 EOD;
 
@@ -770,8 +775,8 @@ EOD;
         return $this->currentRound + 1;
     }
     
-    public function getRoundAsHtml($theRound, $theEditable = false, $admin = false) {
-        self::$LOG -> debug("###################### NY RUNDA ########################");
+    public function getRoundAsHtml($theRound, $theEditable = false, $admin = false, $showTitle = true) {
+        // self::$LOG -> debug("###################### NY RUNDA ########################");
         // Link to images
         $imageLink = WS_IMAGES;
         
@@ -806,18 +811,20 @@ EOD;
 EOD;
         }
         
-        $html .= "<h2>Omgång {$theRound}{$thePanel}</h2>";
+        if ($showTitle) {
+            $html .= "<h2>Omgång {$theRound}{$thePanel}</h2>";
+        }
         
         foreach ($tempRound as $value) {
-            self::$LOG -> debug("--- At start of loop.");
+            // self::$LOG -> debug("--- At start of loop.");
             $html .= "<div class='matchup'>";
             $html .= "<table>";
             if ($value->getPlayerOne()->isEmptyInstance() || $value->getPlayerTwo()->isEmptyInstance()) {
-                self::$LOG -> debug("------- Found byed player");
+                // self::$LOG -> debug("------- Found byed player");
                 $byedPlayer = $value->getPlayerOne()->isEmptyInstance() ? $value->getPlayerTwo() : $value->getPlayerOne();
             } else {
-                self::$LOG -> debug("------- Drawing match.");
-                self::$LOG -> debug(print_r($value, true));
+                // self::$LOG -> debug("------- Drawing match.");
+                // self::$LOG -> debug(print_r($value, true));
                 $html .= "<tr><td>{$value->getPlayerOne()->getAccount()}</td><td class='marker'>-</td><td>{$value->getPlayerTwo()->getAccount()}</td></tr>";
                 $html .= "<tr class='inputRow'><td class='pLeft'>";
                 if ($this->useProxy) {
@@ -845,14 +852,14 @@ EOD;
         if ($byedPlayer != null) {
             $html .= "<p>Spelare som får stå över den här rundan: <span class='byedPlayer'>" . $byedPlayer->getAccount() . "</span></p>";
         }
-        if ($theRound == $this->currentRound) {
+        if ($theEditable && $theRound == $this->currentRound) {
             $html .= "<div>";
             $html .= "<span><input id='saveScoreButton' type='button' name='postvalues' value='Spara resultat' /></span><span id='info'></span>";
             $html .= "</div>";
         }
         $html .= "</div> <!-- End div with round id -->";
         
-        self::$LOG -> debug("#### Klaaaaaaar");
+        // self::$LOG -> debug("#### Klaaaaaaar");
         
         return $html;
     }

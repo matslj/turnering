@@ -41,7 +41,6 @@ $htmlHead = "";
 $javaScript = "";
 $needjQuery = FALSE;
 
-
 // -------------------------------------------------------------------------------------------
 //
 // Take care of _GET variables. Store them in a variable (if they are set).
@@ -63,6 +62,7 @@ $mysqli->close();
 
 // Link to images
 $imageLink = WS_IMAGES;
+$siteLink = WS_SITELINK;
 
 $needjQuery = TRUE;
 
@@ -75,16 +75,45 @@ $htmlHead = <<<EOD
     <script src="{$js}jquery-ui/jquery-ui-1.9.2.custom.min.js"></script>
         
     <!-- jQuery Form Plugin -->
-    <script type='text/javascript' src='{$js}jquery-form/jquery.form.js'></script>
     <script type='text/javascript' src='{$js}jquery-context-menu/jquery.ui-contextmenu.min.js'></script>
-    <script type='text/javascript' src='{$js}myJs/build-min.js'></script>
+        
+    <style>
+        .round {
+            background-color: inherit;
+        }
+        .ui-tabs .ui-tabs-panel {
+            background-color: #3F3F3F;
+        }
+        .ui-widget-content {
+            background-color: #3F3F3F;
+            background-image: none;
+        }
+        .ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active {
+            background-color: #3F3F3F;
+            background-image: none;
+            border: 1px solid #655E4E;
+        }
+        a.ui-tabs-anchor {
+            outline: 0;
+        }
+    </style>
 EOD;
 
 // -------------------------------------------------------------------------------------------
 //
 // Initialize javascript
 //
-$javaScript = "";
+$javaScript = <<<EOD
+(function($){
+    $(document).ready(function() {
+        $("#matchesTabs").tabs({
+            add: function(event, tab) {
+                $(tab.panel).load("{$siteLink}?p=sbd&st={$selectedTournament}");
+            }
+        }).tabs("add", "#resultat", "Slutresultat");
+    });
+})(jQuery);
+EOD;
             
 // ------------------------------------------------------------
 // --
@@ -92,25 +121,9 @@ $javaScript = "";
 // --
 $helpContent = <<<EOD
 <p>
-    Här konfigurerar man vissa grundläggande data för turneringen. Det går att ändra
-    även under pågående turnering, men ens valmöjligheter kan då komma att begränsas
-    något - t.ex. är det inte möjligt att sätta ett lägre antal rundor än det antal
-    rundor som redan är spelade.
+    Här visas detaljinformation för vald turnering. Bara de rundor som faktiskt
+    påbörjades visas i fliksystemet nedan.
 </p>
-<p style="font-weight: bold;">Tie breakers</p>
-<p>
-    Ponera att spelare x och spelare y har samma poäng. Om man har angivit en eller flera
-    tie breakers, så appliceras dessa, i ordning, på x och y i ett vidare försök att lösa
-    x och ys ranking. De tie breakers som finns är:
-</p>
-<ul>
-    <li>Inbördes möte: Om x och y har mötts tidigare, så rankas den högre som vann deras möte.</li>
-    <li>Flest vinster: Den som har flest vinster rankas högre</li>
-    <li>Originalpoäng: Om man kör med ett poängfilter, så kan man använda oförändrad originalpoäng som tie breaker.
-        Valet har ingen effekt om man inte har valt poängfilter och kommer då inte att sparas i databasen.
-    </li>
-</ul>
-Man kan också välja att inte ha någon tie breaker.
 EOD;
 
 // Provides help facility - include $htmlHelp in main content
@@ -127,11 +140,11 @@ $log->debug("Inför tie breaking!!");
 
 function getTieBreakerName($theTb) {
     if ($theTb instanceof tiebreak_CInternalWinner) {
-        return "internalwinner";
+        return CHTMLHelpers::getLabelForTieBreakerValue("internalwinner");
     } else if ($theTb instanceof tiebreak_CMostWon) {
-        return "mostwon";
+        return CHTMLHelpers::getLabelForTieBreakerValue("mostwon");
     } else if ($theTb instanceof tiebreak_COrgScore) {
-        return "orgscore";
+        return CHTMLHelpers::getLabelForTieBreakerValue("orgscore");
     }
     return "";
 }
@@ -142,7 +155,6 @@ function getTieBreakerName($theTb) {
 //
         
 if ($tournament != null) {
-$matchupHtml = $tournament->getAllRoundsAsHtmlNoEdit();
 
 $tbList = $tournament->getTieBreakers();
 $dbTbOne = "";
@@ -155,50 +167,76 @@ if (count($tbList) >= 1) {
 }
 if (count($tbList) >= 2) {
     $dbTbTwo = getTieBreakerName($tbList[1]);
-    $tbOut = $dbTbOne . ", " . $dbTbTwo;
+    $tbOut = "1) " . $dbTbOne . ", 2) " . $dbTbTwo;
 }
 if (count($tbList) >= 3) {
     $dbTbThree = getTieBreakerName($tbList[2]);
-    $tbOut = $dbTbOne . ", " . $dbTbTwo . ", " . $dbTbThree;
+    $tbOut = "1) " . $dbTbOne . ", 2) " . $dbTbTwo . ", 3) " . $dbTbThree;
 }
 
+// -----------------------------------------------------------------------------
+// -- Preparing tabs for played rounds
+// --
+$matchupHtml = "<div id='matchesTabs'>";
+$matchupHtmlTitle = "<ul>";
+$matchupHtmlContent = "";
+
+$nr = $tournament -> getNrOfRoundsInMatrix();
+for ($index = 1; $index <= $nr; $index++) {
+    $matchupHtmlTitle .= "<li><a href='#tab{$index}'>Runda {$index}</a></li>";
+    $matchupHtmlContent .= "<div id='tab{$index}'>" . $tournament -> getRoundAsHtml($index, false, false, false) . "</div>";
+}
+
+$matchupHtmlTitle .= "</ul>";
+$matchupHtml .= $matchupHtmlTitle . $matchupHtmlContent;
+$matchupHtml .= "</div>";
+
+// -----------------------------------------------------------------------------
+// -- The main html content
+// --
 $htmlMain .= <<< EOD
+<h1>Warhammer, {$tournament->getTournamentDateFrom()->getDate()}</h1>
+    {$htmlHelp}
 <div id="turneringsInfo">
             <table>
                 <tr>
-                    <td class='konfLabel'>När?</td>
+                    <td class='konfLabel'>Plats: </td>
+                    <td>{$tournament->getPlace()}</td>
+                </tr>
+                <tr>
+                    <td class='konfLabel'>Skapad av: </td>
+                    <td>{$tournament->getCreator()->getName()}</td>
+                </tr>
+                <tr>
+                    <td class='konfLabel'>Tid: </td>
                     <td>
-                        {$tournament->getTournamentDateFrom()->getDate()}
-                        &nbsp;-&nbsp;
-                        {$tournament->getTournamentDateFrom()->getHour()}
-                        {$tournament->getTournamentDateFrom()->getMinute()}
+                        {$tournament->getTournamentDateFrom()->getDate()},
+                        {$tournament->getTournamentDateFrom()->getHour()}:{$tournament->getTournamentDateFrom()->getMinute()}
                         till
-                        {$tournament->getTournamentDateTom()->getDate()}
-                        &nbsp;-&nbsp;
-                        {$tournament->getTournamentDateTom()->getHour()}
-                        {$tournament->getTournamentDateTom()->getMinute()}
+                        {$tournament->getTournamentDateTom()->getDate()},
+                        {$tournament->getTournamentDateTom()->getHour()}:{$tournament->getTournamentDateTom()->getMinute()}
                     </td>
                 </tr>
                 <tr>
-                    <td class='konfLabel'>Antal rundor</td>
+                    <td class='konfLabel'>Antal rundor: </td>
                     <td>{$tournament->getNrOfRounds()}</td>
                 </tr>
                 <tr>
-                    <td class='konfLabel'>Bye score</td>
+                    <td class='konfLabel'>Bye score: </td>
                     <td>
                         {$tournament->getByeScore()}
                     </td>
                 </tr>
                 <tr>
-                    <td class='konfLabel'>Tie breakers:</td>
+                    <td class='konfLabel'>Tie breakers: </td>
                     <td>
                         {$tbOut}
                     </td>
                 </tr>
             </table>
             {$matchupHtml}
+            
 </div>
-
 EOD;
             
 } else {

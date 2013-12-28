@@ -214,9 +214,9 @@ self::$LOG -> debug(" **** In deewwwwrr() **** ");
         }
     }
     
-    public function getScoreboardAsHtml($theDatabase) {
+    public function getScoreboardAsHtml($theDatabase, $theTournamentId = 1) {
         self::$LOG -> debug("dfdffdfdfd");
-        $tempTournament = $this->getTournament($theDatabase);
+        $tempTournament = $this->getTournament($theDatabase, $theTournamentId);
         self::$LOG -> debug("yuyui");
         $participants = $tempTournament->getParticipantsSortedByScore($theDatabase);
         $html = "";
