@@ -39,7 +39,18 @@ $htmlMain = "";
 $htmlRight = "";
 $htmlHead = "";
 $javaScript = "";
-$needjQuery = FALSE;
+$needjQuery = TRUE;
+
+// In order to create tournament specific page names (so that I can use tournament specific
+// title and content for a page) I add _T<tournamentId>
+$pageName = basename(__FILE__) . "_T" . $selectedTournament;
+
+$titleLink 	= "";
+
+$content 	= "";
+$isEditable = "";
+$hideTitle = true;
+$pageId = 0;
 
 // -------------------------------------------------------------------------------------------
 //
@@ -58,59 +69,41 @@ $tManager = new CTournamentManager();
 
 $tournament = $tManager->getTournament($db, $selectedTournament);
 
+$title      = "Warhammer, {$tournament->getTournamentDateFrom()->getDate()}";
+
+// Get the SP names
+$spGetSidaDetails	= DBSP_PGetSidaDetails;
+
+$query = <<< EOD
+CALL {$spGetSidaDetails}('{$pageName}', 0);
+EOD;
+
+// Perform the query
+$results = Array();
+$res = $db->MultiQuery($query);
+$db->RetrieveAndStoreResultsFromMultiQuery($results);
+
+// Get article details
+$row = $results[0]->fetch_object();
+if ($row) {
+    $pageId     = $row->id;
+    $title      = $row->title;
+    $content    = $row->content;
+    // $titleLink = ($intFilter->IsUserMemberOfGroupAdmin()) ? "<a title='Ändra inlägg' href='{$urlToEditPost}{$row->id}'>$row->title</a>" : $row->title;
+}
+$results[0]->close();
+
 $mysqli->close();
+
+$htmlPageTitleLink = "";
+$htmlPageContent = "";
+$htmlPageTextDialog = "";
+
+require_once(TP_PAGESPATH . 'page/PPageEditDialog.php');
 
 // Link to images
 $imageLink = WS_IMAGES;
 $siteLink = WS_SITELINK;
-
-$needjQuery = TRUE;
-
-// -------------------------------------------------------------------------------------------
-//
-// Set header - page specific jslibs and page specific style
-//
-$htmlHead = <<<EOD
-    <!-- jQuery UI -->
-    <script src="{$js}jquery-ui/jquery-ui-1.9.2.custom.min.js"></script>
-        
-    <style>
-        .round {
-            background-color: inherit;
-        }
-        .ui-tabs .ui-tabs-panel {
-            background-color: #3F3F3F;
-        }
-        .ui-widget-content {
-            background-color: #3F3F3F;
-            background-image: none;
-        }
-        .ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active {
-            background-color: #3F3F3F;
-            background-image: none;
-            border: 1px solid #655E4E;
-        }
-        a.ui-tabs-anchor {
-            outline: 0;
-        }
-    </style>
-EOD;
-
-// -------------------------------------------------------------------------------------------
-//
-// Initialize javascript
-//
-$javaScript = <<<EOD
-(function($){
-    $(document).ready(function() {
-        $("#matchesTabs").tabs({
-            add: function(event, tab) {
-                $(tab.panel).load("{$siteLink}?p=sbd&st={$selectedTournament}");
-            }
-        }).tabs("add", "#resultat", "Slutresultat");
-    });
-})(jQuery);
-EOD;
             
 // ------------------------------------------------------------
 // --
@@ -192,7 +185,12 @@ $matchupHtml .= "</div>";
 // -- The main html content
 // --
 $htmlMain .= <<< EOD
-<h1>Warhammer, {$tournament->getTournamentDateFrom()->getDate()}</h1>
+<h1>{$htmlPageTitleLink}</h1>
+{$htmlHelp}
+{$htmlPageContent}
+<div class="clear"></div>
+<hr class="style-two" />
+{$htmlPageTextDialog}
 <div id="turneringsInfo">
             <table>
                 <tr>

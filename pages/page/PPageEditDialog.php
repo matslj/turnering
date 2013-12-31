@@ -22,6 +22,7 @@ $title = isset($title) && !empty($title) ? $title : "Titel saknas";
 // $hideTitle - if set, and set to true, the title will be hidden.
 // $pageName - holds the name of the current page. Only has to be set if the page doesnt exist already (and has to be created).
    $urlToProcessPage = "?p=page-save"; // This is the target page of the ajax call for storing the page.
+// $notAdminButAllowedToEdit = (true / false) // Use this to enable non admin users to change the text
 // ***** OUT parameters for this page fragment *****
 // The out parameters are set to default values (which is used when user != admin)
 $htmlPageTitleLink = $title; // if admin: a clickable link which opens a edit dialog, otherwise just title text
@@ -38,13 +39,16 @@ $js = WS_JAVASCRIPT;
 $htmlHead = isset($htmlHead) ? $htmlHead : "";
 $javaScript = isset($javaScript) ? $javaScript : "";
 
+// other settings
+$notAdminButAllowedToEdit = isset($notAdminButAllowedToEdit) ? $notAdminButAllowedToEdit : false;
+
 // *****************************************************************************
 // **
 // **                   THE CODE (where the magic happens) 
 // The code below is only valid for admin users, for non admins there are nothing 
 // more to process in this fragment.
 $uo = CUserData::getInstance();
-if ($uo -> isAdmin())
+if ($uo -> isAdmin() || $notAdminButAllowedToEdit)
 {
 // Publish button is initially disabled
 $publishDisabled = 'disabled="disabled"';
@@ -56,7 +60,7 @@ $htmlHead .= <<<EOD
     <script type='text/javascript' src='{$js}tinyeditor/tiny.editor.packed.js'></script>
     <!-- jQuery UI -->
     <script src="{$js}jquery-ui/jquery-ui-1.9.2.custom.min.js"></script>
-    <script type='text/javascript' src='{$js}myJs/disimg-utils.js'></script>
+    <script type='text/javascript' src='{$js}myJs/build-min.js'></script>
 EOD;
 
 $javaScript .= <<<EOD

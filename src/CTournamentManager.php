@@ -130,6 +130,12 @@ EOD;
 //        }
     }
     
+    public function getEmptyTournament() {
+        $uo = CUserData::getInstance();
+        $t = CTournament::getInstanceByParameters(-1, $uo, "", 3, "Swiss", 1, 1000, null, null, null, 'internalwinner', 0, null);
+        return $t;
+    }
+    
     public function getTournaments($theDatabase, $byUser = false) {
         
         self::$LOG -> debug(" **** In CTournamentManager in getTournaments() **** ");

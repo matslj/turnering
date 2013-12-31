@@ -58,11 +58,10 @@ EOD;
 $javaScript .= <<<EOD
 (function($){
     $(document).ready(function() {
-        var c = $('h1').html();
-        c = c + '<a id="pageHelpToggle" class="helpA" href="#"><img src="{$imageLink}question.png" /></a>'
-        $('h1').html(c).after('{$htmlHelp}');
+    
+        $('h1').append('<a id="pageHelpToggle" class="helpA" href="#"><img src="{$imageLink}question.png" /></a>');
+        $('h1').after('{$htmlHelp}');
         
-
         // Hide page help and initialize page help handler
         $('#pageHelp').hide();
         $('#pageHelpToggle').click(function() {

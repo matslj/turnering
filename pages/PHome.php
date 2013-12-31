@@ -26,7 +26,7 @@ $intFilter = new CInterceptionFilter();
 $intFilter->FrontControllerIsVisitedOrDie();
 $img = WS_IMAGES;
 
-$redirect = "?p=past"; // $pc->computeRedirect();
+$redirect = "?p=t"; // $pc->computeRedirect();
 // $urlToEditPost = "?p=page-edit{$redirect}&amp;page-id=";
 
 // -------------------------------------------------------------------------------------------
@@ -110,7 +110,7 @@ foreach ($tournaments as $tempT) {
             <table>
             <tr>
                 <td id="mtt{$tempT->getId()}">
-                    <a href="{$redirect}&st={$tempT->getId()}">{$tempT->getTournamentDateFrom()->getDate()} - {$tempT->getTournamentDateTom()->getDate()}, {$tempT->getPlace()}</a>
+                    <a href="{$redirect}upc&st={$tempT->getId()}">{$tempT->getTournamentDateFrom()->getDate()} - {$tempT->getTournamentDateTom()->getDate()}, {$tempT->getPlace()}</a>
                 </td>
             </tr>
             </table>
@@ -120,7 +120,7 @@ EOD;
             <table>
             <tr>
                 <td id="mtt{$tempT->getId()}">
-                    <a href="{$redirect}&st={$tempT->getId()}">{$tempT->getTournamentDateFrom()->getDate()} - {$tempT->getTournamentDateTom()->getDate()}, {$tempT->getPlace()}</a>
+                    <a href="{$redirect}past&st={$tempT->getId()}">{$tempT->getTournamentDateFrom()->getDate()} - {$tempT->getTournamentDateTom()->getDate()}, {$tempT->getPlace()}</a>
                 </td>
             </tr>
             </table>
