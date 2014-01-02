@@ -50,6 +50,7 @@ $htmlHead .= <<<EOD
     <style>
         .helpA {
             float:right;
+            outline: none;
         }
 
     </style>

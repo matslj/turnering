@@ -13,38 +13,39 @@
 $imageLink = WS_IMAGES;
 
 // Get the tablenames
-$tSida          = DBT_Sida;
-$tMatch         = DBT_Match;
-$tTournament    = DBT_Tournament;
-$tPointFilter   = DBT_PointFilter;
-$tUser 			= DBT_User;
-$tGroup 		= DBT_Group;
-$tGroupMember 	= DBT_GroupMember;
-$tStatistics 	= DBT_Statistics;
+$tSida           = DBT_Sida;
+$tMatch          = DBT_Match;
+$tTournament     = DBT_Tournament;
+$tUserTournament = DBT_UserTournament;
+$tPointFilter    = DBT_PointFilter;
+$tUser 		 = DBT_User;
+$tGroup 	 = DBT_Group;
+$tGroupMember 	 = DBT_GroupMember;
+$tStatistics 	 = DBT_Statistics;
 
 // Get the SP/UDF/trigger names
-$spAuthenticateUser = DBSP_AuthenticateUser;
-$spCreateUser = DBSP_CreateUser;
-$trInsertUser	= DBTR_TInsertUser;
-$spGetUserDetails = DBSP_GetUserDetails;
-$spSetUserDetails = DBSP_SetUserDetails;
-$spSetUserPassword = DBSP_SetUserPassword;
-$spSetUserEmail = DBSP_SetUserEmail;
-$spSetUserArmy = DBSP_SetUserArmy;
-$spUpdateLastLogin = DBSP_UpdateLastLogin;
-$spSetUserAvatar = DBSP_SetUserAvatar;
-$spSetUserGravatar = DBSP_SetUserGravatar;
-$spSetUserNameAndEmail = DBSP_SetUserNameAndEmail;
-$spSetTournamentUser = DBSP_SetTournamentUser;
-$spCreateUserAccountOrEmail = DBSP_CreateUserAccountOrEmail;
+$spAuthenticateUser            = DBSP_AuthenticateUser;
+$spCreateUser                  = DBSP_CreateUser;
+$trInsertUser	               = DBTR_TInsertUser;
+$spGetUserDetails              = DBSP_GetUserDetails;
+$spSetUserDetails              = DBSP_SetUserDetails;
+$spSetUserPassword             = DBSP_SetUserPassword;
+$spSetUserEmail                = DBSP_SetUserEmail;
+$spSetUserArmy                 = DBSP_SetUserArmy;
+$spUpdateLastLogin             = DBSP_UpdateLastLogin;
+$spSetUserAvatar               = DBSP_SetUserAvatar;
+$spSetUserGravatar             = DBSP_SetUserGravatar;
+$spSetUserNameAndEmail         = DBSP_SetUserNameAndEmail;
+$spSetTournamentUser           = DBSP_SetTournamentUser;
+$spCreateUserAccountOrEmail    = DBSP_CreateUserAccountOrEmail;
 $spCreateUserAccountTournament = DBSP_CreateUserAccountTournament;
-$spDeleteUser = DBSP_DeleteUser;
+$spDeleteUser                  = DBSP_DeleteUser;
 
 // Match related sps
-$spCreateMatch             = DBSP_CreateMatch;
-$spUpdateMatchScore        = DBSP_UpdateMatchScore;
-$spDeleteMatch             = DBSP_DeleteMatch;
-$spDeleteAllMatchesOnRound = DBSP_DeleteAllMatchesOnRound;
+$spCreateMatch                  = DBSP_CreateMatch;
+$spUpdateMatchScore             = DBSP_UpdateMatchScore;
+$spDeleteMatch                  = DBSP_DeleteMatch;
+$spDeleteAllMatchesOnRound      = DBSP_DeleteAllMatchesOnRound;
 
 // Tournament related sps
 $spCreateTournament             = DBSP_CreateTournament;
@@ -54,13 +55,17 @@ $spChangeActiveTournament       = DBSP_ChangeActiveTournament;
 $spSetJsonScoreProxyTournament  = DBSP_SetJsonScoreProxyTournament;
 $spDeleteTournament             = DBSP_DeleteTournament;
 
+// User - Tournament related sps
+$spLeaveTournament              = DBSP_LeaveTournament;
+$spJoinTournament               = DBSP_JoinTournament;
+
 // Point filter related sps
-$spCreatePointFilter = DBSP_CreatePointFilter;
-$spEditPointFilter   = DBSP_EditPointFilter;
+$spCreatePointFilter            = DBSP_CreatePointFilter;
+$spEditPointFilter              = DBSP_EditPointFilter;
 
-$fCheckUserIsAdmin = DBUDF_CheckUserIsAdmin;
+$fCheckUserIsAdmin              = DBUDF_CheckUserIsAdmin;
 
-$fGetGravatarLinkFromEmail = DBUDF_GetGravatarLinkFromEmail;
+$fGetGravatarLinkFromEmail      = DBUDF_GetGravatarLinkFromEmail;
 
 // Create the query
 $query = <<<EOD
@@ -69,6 +74,7 @@ DROP TABLE IF EXISTS {$tSida};
 
 DROP TABLE IF EXISTS {$tMatch};
 DROP TABLE IF EXISTS {$tPointFilter};
+DROP TABLE IF EXISTS {$tUserTournament};
 DROP TABLE IF EXISTS {$tTournament};
 DROP TABLE IF EXISTS {$tGroupMember};
 DROP TABLE IF EXISTS {$tUser};
@@ -160,6 +166,28 @@ CREATE TABLE {$tTournament} (
   jsonScoreProxyTournament TEXT NULL
 );
 
+--
+-- Table for the user-tournament manyToMany-relation
+--
+CREATE TABLE {$tUserTournament} (
+
+  -- Primary key(s)
+  --
+  -- The PK is the combination of the two foreign keys, see below.
+  --
+
+  -- Foreign keys
+  UserTournament_idUser INT NOT NULL,
+  UserTournament_idTournament INT NOT NULL,
+
+  FOREIGN KEY (UserTournament_idUser) REFERENCES {$tUser}(idUser),
+  FOREIGN KEY (UserTournament_idTournament) REFERENCES {$tTournament}(idTournament),
+
+  PRIMARY KEY (UserTournament_idUser, UserTournament_idTournament),
+
+  -- Attributes
+  joinDateUserTournament DATETIME NOT NULL
+);
 
 --
 -- Table for a Match (a round between two players/users)
@@ -336,6 +364,11 @@ BEGIN
     WHERE
         tRefMatch_idTournament = aTournamentId;
    
+    -- Then delete all matching rows in the user-tournament-relation
+    DELETE FROM {$tUserTournament}
+    WHERE
+        UserTournament_idTournament = aTournamentId;
+    
     -- And finally, delete the tournament
     DELETE FROM {$tTournament}
     WHERE
@@ -408,6 +441,38 @@ BEGIN
     LIMIT 1;
 END;
 
+--
+-- SP to join a tournament
+--
+DROP PROCEDURE IF EXISTS {$spJoinTournament};
+CREATE PROCEDURE {$spJoinTournament}
+(
+    IN aTournamentId INT,
+    IN anUserId INT
+)
+BEGIN    
+    INSERT INTO {$tUserTournament}
+        (UserTournament_idUser, UserTournament_idTournament, joinDateUserTournament)
+        VALUES
+        (anUserId, aTournamentId, NOW());
+END;
+
+--
+-- SP to leave a tournament
+--
+DROP PROCEDURE IF EXISTS {$spLeaveTournament};
+CREATE PROCEDURE {$spLeaveTournament}
+(
+    IN aTournamentId INT,
+    IN anUserId INT
+)
+BEGIN    
+    DELETE FROM {$tUserTournament}
+    WHERE
+        UserTournament_idUser = anUserId AND
+        UserTournament_idTournament = aTournamentId;
+END;
+    
 --
 -- SP to create a point filter
 --
@@ -631,6 +696,11 @@ BEGIN
         WHERE
             playerOneMatch_idUser = anIdUser OR
             playerTwoMatch_idUser = anIdUser;
+        
+        -- Then delete all matching rows in the user-tournament-relation
+        DELETE FROM {$tUserTournament}
+        WHERE
+            UserTournament_idUser = anIdUser;
             
         DELETE FROM {$tStatistics}
         WHERE

@@ -104,6 +104,7 @@ $results[0]->close();
 // **      Get participant list
 // *********************************************
 $tUser = DBT_User;
+$tUserTournament = DBT_UserTournament;
 $imgUrl = WS_IMAGES;
 $participantListHtml = "";
 $numberOfParticipants = 0;
@@ -113,9 +114,10 @@ SELECT
 	accountUser,
     nameUser,
     armyUser
-FROM {$tUser} AS U
-WHERE deletedUser = FALSE
-      AND activeUser = TRUE;
+FROM {$tUser} AS U INNER JOIN {$tUserTournament} AS UT ON UserTournament_idUser = idUser
+WHERE U.deletedUser = FALSE
+      AND U.activeUser = TRUE AND
+      UT.UserTournament_idTournament = {$tournament -> getId()};
 EOD;
 
 $result = Array();

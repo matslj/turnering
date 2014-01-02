@@ -27,20 +27,21 @@ define('DB_PREFIX', 'tur_');    // Prefix to use infront of tablename and views
 //
 // Define the names for the database (tables, views, procedures, functions, triggers)
 //
-define('DBT_User', 		    DB_PREFIX . 'User');
+define('DBT_User', 		DB_PREFIX . 'User');
 define('DBT_Group', 		DB_PREFIX . 'Group');
 define('DBT_GroupMember',	DB_PREFIX . 'GroupMember');
 define('DBT_Statistics',	DB_PREFIX . 'Statistics');
-define('DBT_Sida',		    DB_PREFIX . 'Sida');
-define('DBT_Match',		    DB_PREFIX . 'Match');
+define('DBT_Sida',		DB_PREFIX . 'Sida');
+define('DBT_Match',		DB_PREFIX . 'Match');
 define('DBT_Tournament',	DB_PREFIX . 'Tournament');
+define('DBT_UserTournament',	DB_PREFIX . 'UserTournament');
 define('DBT_PointFilter',	DB_PREFIX . 'PointFilter');
 
 // Stored routines concerning page and pictures
 define('DBSP_PInsertOrUpdateSida',	           DB_PREFIX . 'PInsertOrUpdateSida');
 define('DBSP_PGetSidaDetails',		           DB_PREFIX . 'PGetSidaDetails');
 define('DBSP_PGetSidaDetailsById',	           DB_PREFIX . 'PGetSidaDetailsById');
-define('DBUDF_FCheckUserIsOwnerOrAdminOfSida', DB_PREFIX . 'FCheckUserIsOwnerOrAdminOfSida');
+define('DBUDF_FCheckUserIsOwnerOrAdminOfSida',     DB_PREFIX . 'FCheckUserIsOwnerOrAdminOfSida');
 define('DBUDF_CheckUserIsAdmin',	           DB_PREFIX . 'FCheckUserIsAdmin');
 
 // Stored routines concerning user
@@ -80,7 +81,11 @@ define('DBSP_DeleteTournament',             DB_PREFIX . 'PDeleteTournament');
 define('DBSP_CreatePointFilter',            DB_PREFIX . 'PCreatePointFilter');
 define('DBSP_EditPointFilter',              DB_PREFIX . 'PEditPointFilter');
 
+// Stored routines concerning point filter
+define('DBSP_JoinTournament',               DB_PREFIX . 'PJoinTournament');
+define('DBSP_LeaveTournament',              DB_PREFIX . 'PLeaveTournament');
+
 // Triggers
-define('DBTR_TInsertUser',	                DB_PREFIX . 'TInsertUser');
-define('DBTR_TAddArticle',		            DB_PREFIX . 'TAddArticle');
+define('DBTR_TInsertUser',	            DB_PREFIX . 'TInsertUser');
+define('DBTR_TAddArticle',		    DB_PREFIX . 'TAddArticle');
 ?>

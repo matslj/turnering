@@ -33,7 +33,7 @@ class CHTMLPage {
     //
     // Print out a resulting page according to arguments
     //
-    public function PrintPage($aTitle="", $aHTMLLeft="", $aHTMLMain="", $aHTMLRight="", $aHTMLHead="", $aJavaScript="", $enablejQuery=FALSE) {
+    public function PrintPage($aTitle="", $aHTMLLeft="", $aHTMLMain="", $aHTMLRight="", $aHTMLHead="", $aJavaScript="", $enablejQuery=FALSE, $aSubMenu="") {
 
         $titlePage	= $aTitle;
         $titleSite	= WS_TITLE;
@@ -92,6 +92,7 @@ class CHTMLPage {
                     <div class='right'>&nbsp;</div>
                 </div>
                 <div id="nav">{$nav}</div>
+                {$aSubMenu}
             </header>
             {$body}
             <footer><p>{$footer}</p></footer>

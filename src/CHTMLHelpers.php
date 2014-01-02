@@ -79,7 +79,7 @@ class CHTMLHelpers {
 	// Static function, HTML helper
 	// Create a horisontal sidebar menu
 	//
-	public static function GetSidebarMenu($aMenuitems, $aTarget="") {
+	public static function getSubMenu($aMenuitems, $aParameterStr = "", $aTarget="") {
 
 		global $gPage;
 
@@ -88,7 +88,7 @@ class CHTMLHelpers {
 		$menu = "<ul>";
 		foreach($aMenuitems as $key => $value) {
 			$selected = (strcmp($target, substr($value, 3)) == 0) ? " class='sel'" : "";
-			$menu .= "<li{$selected}><a href='{$value}'>{$key}</a></li>";
+			$menu .= "<li{$selected}><a href='{$value}{$aParameterStr}'>{$key}</a></li>";
 		}
 		$menu .= '</ul>';
 		

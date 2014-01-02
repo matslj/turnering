@@ -28,6 +28,8 @@ $selectedTournament = $pc->GETisSetOrSetDefault('st', 0);
 
 CPageController::IsNumericOrDie($selectedTournament);
 
+$uo = CUserData::getInstance();
+
 // -------------------------------------------------------------------------------------------
 //
 // Page specific code
@@ -70,6 +72,45 @@ $tManager = new CTournamentManager();
 $tournament = $tManager->getTournament($db, $selectedTournament);
 
 $title      = "Warhammer, {$tournament->getTournamentDateFrom()->getDate()}";
+
+// *********************************************
+// **      Get participant list
+// *********************************************
+$tUser = DBT_User;
+$tUserTournament = DBT_UserTournament;
+$imgUrl = WS_IMAGES;
+$participantListHtml = "";
+$numberOfParticipants = 0;
+$query = <<< EOD
+SELECT
+	idUser,
+	accountUser,
+    nameUser,
+    armyUser
+FROM {$tUser} AS U INNER JOIN {$tUserTournament} AS UT ON UserTournament_idUser = idUser
+WHERE U.deletedUser = FALSE
+      AND U.activeUser = TRUE AND
+      UT.UserTournament_idTournament = {$tournament -> getId()};
+EOD;
+
+$result = Array();
+
+// Perform the query and manage results
+$result = $db->Query($query);
+$participantListHtml .= "<table>";
+while($row = $result->fetch_object()) {
+    $numberOfParticipants++;
+    $participantListHtml .= "<tr>";
+    $imgName = CHTMLHelpers::getArmyValueName($row -> armyUser);
+    $participantListHtml .= "<td>{$row->accountUser}</td>";
+    $participantListHtml .= "<td>{$row -> armyUser}</td>";
+    $participantListHtml .= "</tr>";
+}
+$participantListHtml .= "</table>";
+$result -> close();
+// *********************************************
+// **      End get participant list
+// *********************************************
 
 // Get the SP names
 $spGetSidaDetails	= DBSP_PGetSidaDetails;
@@ -165,23 +206,6 @@ if (count($tbList) >= 3) {
 }
 
 // -----------------------------------------------------------------------------
-// -- Preparing tabs for played rounds
-// --
-$matchupHtml = "<div id='matchesTabs'>";
-$matchupHtmlTitle = "<ul>";
-$matchupHtmlContent = "";
-
-$nr = $tournament -> getNrOfRoundsInMatrix();
-for ($index = 1; $index <= $nr; $index++) {
-    $matchupHtmlTitle .= "<li><a href='#tab{$index}'>Runda {$index}</a></li>";
-    $matchupHtmlContent .= "<div id='tab{$index}'>" . $tournament -> getRoundAsHtml($index, false, false, false) . "</div>";
-}
-
-$matchupHtmlTitle .= "</ul>";
-$matchupHtml .= $matchupHtmlTitle . $matchupHtmlContent;
-$matchupHtml .= "</div>";
-
-// -----------------------------------------------------------------------------
 // -- The main html content
 // --
 $htmlMain .= <<< EOD
@@ -227,9 +251,15 @@ $htmlMain .= <<< EOD
                         {$tbOut}
                     </td>
                 </tr>
-            </table>
-            {$matchupHtml}
-            
+            </table>            
+</div>
+<hr class="style-two" />
+<div id="deltagare">
+    <div>
+        <h3>Deltagare (so far)</h3>
+        {$participantListHtml}
+        <p>Antal: {$numberOfParticipants}</p>
+    </div>
 </div>
 EOD;
             
@@ -239,6 +269,17 @@ $htmlMain .= <<<EOD
 Ingen turnering är vald. Skapa en ny turnering eller välj en i listan.
 EOD;
 
+}
+
+$subNav = "";
+$uo = CUserData::getInstance();
+if ($uo -> isAuthenticated()) {
+    $tStr = "";
+    if (!empty($selectedTournament)) {
+        $tStr = "&st=" . $selectedTournament;
+    }
+    $menu = unserialize(SUB_MENU_NAVBAR);
+    $subNav = "<div id='subNav'>" . CHTMLHelpers::getSubMenu($menu, $tStr) . "</div>";
 }
 
 // -------------------------------------------------------------------------------------------
@@ -252,7 +293,7 @@ $page = new CHTMLPage(WS_STYLESHEET);
 // Creating the left menu panel
 $htmlLeft = ""; // $page ->PrepareLeftSideNavigationBar(ADMIN_MENU_NAVBAR, "Admin - undermeny");
 
-$page->printPage('Turneringsdata', $htmlLeft, $htmlMain, $htmlRight, $htmlHead, $javaScript, $needjQuery);
+$page->printPage('Turneringsdata', $htmlLeft, $htmlMain, $htmlRight, $htmlHead, $javaScript, $needjQuery, $subNav);
 exit;
 
 ?>

@@ -38,6 +38,37 @@
 #nav .sel a:hover,
 #nav .sel a:focus {}
 
+/* -------------------------------------------------------------------------------------
+/* Sub navigation bar */
+
+#subNav {
+	clear: both;
+        margin: 31px 10px 0 10px;
+}
+#subNav ul {
+	float: left;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+#subNav li {
+	display: inline;
+	margin: 0;
+	padding: 0;
+}
+#subNav a {
+	display: block;
+	float: left;
+	padding: 3px 10px;
+	text-decoration: none;
+}
+#subNav a:hover,
+#subNav a:focus {}
+#subNav .sel a {}
+#subNav .sel a:hover,
+#subNav .sel a:focus {}
+
 /******************************************************************
  * Left Side navigation menu
  */

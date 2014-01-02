@@ -830,13 +830,13 @@ EOD;
                 if ($this->useProxy) {
                     $html .= "<span class='proxyLeft'>({$value->getProxyScorePlayerOne($this->id)})</span>";
                 }
-                if ($theEditable && ($value->isPlayerInMatch($loggedOnUser->getId()) || $loggedOnUser->isAdmin())) {
+                if ($theEditable && ($value->isPlayerInMatch($loggedOnUser->getId()) || $admin)) {
                     $html .= "<input id='playerOneScore#{$value->getId()}' class='scoreInput' type='text' name='playerOneScore#{$value->getId()}' value='{$value->getScorePlayerOne()}' />";
                 } else {
                     $html .= "<div style='display: inline-block; width: 30px;'>" . $value->getScorePlayerOne() . "</div>";
                 }
                 $html .= "</td><td>&nbsp;</td><td class='pRight'>";
-                if ($theEditable && ($value->isPlayerInMatch($loggedOnUser->getId()) || $loggedOnUser->isAdmin())) {
+                if ($theEditable && ($value->isPlayerInMatch($loggedOnUser->getId()) || $admin)) {
                     $html .= "<input id='playerTwoScore#{$value->getId()}' class='scoreInput' type='text' name='playerTwoScore#{$value->getId()}' value='{$value->getScorePlayerTwo()}' />";
                 } else {
                     $html .= "<div style='display: inline-block; width: 30px;'>" . $value->getScorePlayerTwo() . "</div>";

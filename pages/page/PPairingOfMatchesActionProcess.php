@@ -4,6 +4,8 @@
 // File: PPairingOfMatchesActionProcess.php
 //
 // Description: Processes requests for adding, deleting or reseting a round (match round).
+// Observe that both admins and the creator of the tournament ar allowed to perform
+// these actions.
 //
 // Author: Mats Ljungquist
 //
@@ -23,7 +25,6 @@ $intFilter = new CInterceptionFilter();
 
 $intFilter->FrontControllerIsVisitedOrDie();
 $intFilter->UserIsSignedInOrRecirectToSignIn();
-$intFilter->IsUserMemberOfGroupAdminOrTerminate();
 
 // -------------------------------------------------------------------------------------------
 //
@@ -31,13 +32,17 @@ $intFilter->IsUserMemberOfGroupAdminOrTerminate();
 //
 $returnPage = $pc->GETisSetOrSetDefault('p', 'home');
 $theRound = $pc->GETisSetOrSetDefault('cr', 0);
+$tId = $pc->GETisSetOrSetDefault('t', 0);
 CPageController::IsNumericOrDie($theRound);
+CPageController::IsNumericOrDie($tId);
 
 $db = new CDatabaseController();
 $mysqli = $db->Connect();
 
 $tManager = new CTournamentManager();
-$tManager->modifyRound($db,$theRound);
+$tournament = $tManager ->getTournament($db, $tId);
+$intFilter->IsUserMemberOfGroupAdminOrIsCurrentUserOrTerminate($tournament -> getCreator() -> getId());
+$tManager->modifyRound($db, $tournament, $theRound);
 
 // -------------------------------------------------------------------------------------------
 //

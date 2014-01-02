@@ -10,16 +10,12 @@
 // # in the menu below means that the user has to be logged in for this item to show up.
 $menuNavBar = Array (
         'Hem'              => '?p=home',
-        'Matchups' 	       => '?p=matchup',
-        'Resultatlista'    => '?p=scoreboard',
-        '#Konfiguration'    => '?p=admin_tournament',
+        '#Skapa turnering'    => '?p=admin_tournament',
 );
 define('MENU_NAVBAR', serialize($menuNavBar));
 
 $menuNavBarForAdmin = Array (
         'Hem'           => '?p=home',
-        'Matchups' 	    => '?p=matchup',
-        'Resultatlista' => '?p=scoreboard',
         'Konfiguration' => '?p=admin_tournament',
         'Deltagare'     => '?p=admin_anvandare',
 );
@@ -33,6 +29,13 @@ $adminMenuNavBar = Array (
         'Koppla användare'  => '?p=admin_manager',
 );
 define('ADMIN_MENU_NAVBAR',      serialize($adminMenuNavBar));
+
+$subMenuNavBar = Array (
+        'Hem - vald turnering' => '?p=tupc',
+        'Matchups' 	    => '?p=matchup',
+        'Resultatlista' => '?p=scoreboard',
+);
+define('SUB_MENU_NAVBAR',      serialize($subMenuNavBar));
 
 // Some constants (should not be here)
 

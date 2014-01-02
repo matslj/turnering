@@ -144,6 +144,28 @@ h1 a, h1 a:visited, h1 a:hover {
 }
 
 /* -------------------------------------------------------------------------------------
+/* Navigation bar */
+
+#subNav ul {
+	background: #865E29; /* #A65C00; */
+}
+#subNav a {
+	border-right: 1px solid #000;
+	border-bottom: none;
+	border-left: 1px solid #000;
+	color: #FF8E00;
+	background: #A65C00;
+}
+#subNav a:hover,
+#subNav a:focus,
+#subNav .sel a,
+#subNav .sel a:hover,
+#subNav .sel a:focus {
+        color: #A65C00;
+	background: #FF8E00;
+}
+
+/* -------------------------------------------------------------------------------------
  *
  * Other functional divs, not part of the main structure of the website
  *

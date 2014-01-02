@@ -31,8 +31,10 @@ $intFilter->UserIsSignedInOrRecirectToSignIn();
 // Take care of _GET/_POST variables. Store them in a variable (if they are set).
 //
 $createRound = $pc->GETisSetOrSetDefault('cr', 0);
-
 CPageController::IsNumericOrDie($createRound);
+
+$selectedTournament = $pc->GETisSetOrSetDefault('st', 0);
+CPageController::IsNumericOrDie($selectedTournament);
 
 $redirect = "?p=" . $pc->computePage();
 $action = $redirect . "p";
@@ -40,10 +42,6 @@ $actionProcess = $redirect. "ap";
 
 $uo = CUserData::getInstance();
 $admin = $uo-> isAdmin();
-
-// $log -> debug("userid: " . $userId);
-// Always check whats coming in...
-//$pc->IsNumericOrDie($articleId, 0);
 
 // -------------------------------------------------------------------------------------------
 //
@@ -53,49 +51,16 @@ $db = new CDatabaseController();
 $mysqli = $db->Connect();
 
 $tManager = new CTournamentManager();
-$tournament = $tManager->getTournament($db);
-$tournamentHtml = $tManager->getTournamentMatchupsAsHtml($db, $admin);
+$tournament = $tManager->getTournament($db, $selectedTournament);
+if ($tournament -> getCreator() -> getId() == $uo -> getId()) {
+    $admin = true;
+}
+$tournamentHtml = $tManager->getTournamentMatchupsAsHtml($db, $tournament, $admin);
 
 $scoreProxyManager = $tournament->getScoreProxyManager();
 
 $htmlHead = "";
 $javaScript = "";
-
-// -------------------------------------------------------------------------------------------
-// 
-// Read editable text for page
-//
-$pageName = basename(__FILE__);
-$title          = "";
-$content 	= "";
-$pageId         = 0;
-
-// Get the SP names
-$spGetSidaDetails	= DBSP_PGetSidaDetails;
-
-$query = <<< EOD
-CALL {$spGetSidaDetails}('$pageName', 0);
-EOD;
-
-// Perform the query
-$results = Array();
-$res = $db->MultiQuery($query);
-$db->RetrieveAndStoreResultsFromMultiQuery($results);
-
-// Get article details
-$row = $results[0]->fetch_object();
-if ($row) {
-    $pageId     = $row->id;
-    $title      = $row->title;
-    $content    = $row->content;
-}
-$results[0]->close();
-
-$htmlPageTitleLink = "";
-$htmlPageContent = "";
-$htmlPageTextDialog = "";
-
-require_once(TP_PAGESPATH . 'page/PPageEditDialog.php');
 
 // -------------------------------------------------------------------------------------------
 //
@@ -161,18 +126,25 @@ $nextRound .= "</div>";
 // Create HTML for page
 //
 $htmlMain = <<<EOD
-    <h1>{$htmlPageTitleLink}</h1>
-    <p>
-        {$htmlPageContent}
-    </p>
+    <h1>Rapportera matchresultat</h1>
     <div class='sectionMatchup'>
     {$tournamentHtml}
     {$nextRound}
-    {$htmlPageTextDialog}
     </div>
 EOD;
 
 $htmlRight = "";
+
+$subNav = "";
+$uo = CUserData::getInstance();
+if ($uo -> isAuthenticated()) {
+    $tStr = "";
+    if (!empty($selectedTournament)) {
+        $tStr = "&st=" . $selectedTournament;
+    }
+    $menu = unserialize(SUB_MENU_NAVBAR);
+    $subNav = "<div id='subNav'>" . CHTMLHelpers::getSubMenu($menu, $tStr) . "</div>";
+}
 
 // -------------------------------------------------------------------------------------------
 //
@@ -183,7 +155,7 @@ $page = new CHTMLPage();
 // Creating the left menu panel
 $htmlLeft = "";
 
-$page->printPage('Matchning', $htmlLeft, $htmlMain, $htmlRight, $htmlHead, $javaScript, $needjQuery);
+$page->printPage('Matchning', $htmlLeft, $htmlMain, $htmlRight, $htmlHead, $javaScript, $needjQuery, $subNav);
 exit;
 
 ?>

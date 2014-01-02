@@ -33,25 +33,23 @@ class CTournamentManager {
         return $this->tournament;
     }
     
-    public function getTournamentMatchupsAsHtml($theDatabase, $admin) {
+    public function getTournamentMatchupsAsHtml($theDatabase, $aTournament, $admin) {
 
         // DB connection is required
         if (empty($theDatabase)) {
             return null;
         }
-        $tempTournament = $this->getTournament($theDatabase);
-        $tempTournament->createOrRecreateRound($theDatabase);
-        return $tempTournament->getAllRoundsAsHtml($admin);
+        $aTournament->createOrRecreateRound($theDatabase);
+        return $aTournament->getAllRoundsAsHtml($admin);
     }
     
-    public function modifyRound($theDatabase, $theRound) {
+    public function modifyRound($theDatabase, $aTournament, $theRound) {
 
         // DB connection is required
         if (empty($theDatabase)) {
             return null;
         }
-        $tempTournament = $this->getTournament($theDatabase);
-        $tempTournament->createOrRecreateRound($theDatabase, $theRound);
+        $aTournament->createOrRecreateRound($theDatabase, $theRound);
     }
     
     public function getActiveTournament($theDatabase) {

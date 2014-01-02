@@ -38,6 +38,11 @@ div#title #subtitle {
     font-size: x-small;
 }
 
+#subNav {
+	font-family: Calibri, sans-serif /* Verdana, Sans-serif */;
+    font-size: x-small;
+}
+
 footer p {
 	margin: 0;
 	padding: 3px;
