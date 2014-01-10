@@ -243,7 +243,7 @@ $htmlMain .= <<< EOD
     <th><a href='{$httpRef}nameUser'>Namn</a></th>
     <th><a href='{$httpRef}armyUser'>Armé</a></th>
     <th><a href='{$httpRef}idGroup'>Grupp</a></th>
-    <th><a href='{$httpRef}activeUser'>Anmäld</a></th>
+    <th><a href='{$httpRef}activeUser'>Aktiverad</a></th>
     <th class='knapp' style='width: 80px;'>&nbsp;</th>
     </tr>
 EOD;

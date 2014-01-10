@@ -97,6 +97,76 @@ EOD;
         return $t;
     }
     
+    public static function isPartOfTournament($theDatabase, $theUserId, $theTournamentId) {
+        
+        if (empty($theUserId) || empty($theTournamentId)) {
+            return false;
+        }
+        
+        // Get the tablenames
+        $tUserTournament       = DBT_UserTournament;
+
+        $query = <<< EOD
+            SELECT
+                UserTournament_idUser
+                UserTournament_idTournament
+            FROM {$tUserTournament}
+            WHERE 
+                UserTournament_idUser = {$theUserId} AND
+                UserTournament_idTournament = {$theTournamentId}
+            LIMIT 1;
+EOD;
+            
+        $res = $theDatabase->Query($query);
+    
+        $row = $res->fetch_object();
+        
+        $inTournament = false;
+        
+        if (!empty($row)) {
+            $inTournament = true;
+        }
+        
+        $res->close();
+        
+        return $inTournament;
+    }
+    
+    public static function getParticipantList($theDatabase, $theTournamentId) {
+        // self::$LOG = logging_CLogger::getInstance(__FILE__);
+        $tUser = DBT_User;
+        $tUserTournament = DBT_UserTournament;
+        // $imgUrl = WS_IMAGES;
+        $query = <<< EOD
+            SELECT
+                idUser,
+                accountUser,
+                nameUser,
+                armyUser
+            FROM {$tUser} AS U INNER JOIN {$tUserTournament} AS UT ON UserTournament_idUser = idUser
+            WHERE U.deletedUser = FALSE
+                  AND U.activeUser = TRUE AND
+                  UT.UserTournament_idTournament = {$theTournamentId};
+EOD;
+
+        // Perform the query and manage results
+        $result = $theDatabase->Query($query);
+        $participantList = array();
+
+        while($row = $result->fetch_object()) {
+            $participantList[] = new view_CParticipant($row->idUser, $row->accountUser, $row -> nameUser, $row -> armyUser);
+        }
+        $result -> close();
+        if (empty($participantList)) {
+            return "[]"; 
+        } else {;
+            foreach ($participantList as &$value) {
+                $value = $value->toJson();
+            }
+            return json_encode($participantList);
+        }
+    }
+    
     public function createTournament($theDatabase) {
 //        $tournament = $this->getActiveTournament($theDatabase);
 //        if (!empty($tournament)) {
@@ -132,6 +202,50 @@ EOD;
         $uo = CUserData::getInstance();
         $t = CTournament::getInstanceByParameters(-1, $uo, "", 3, "Swiss", 1, 1000, null, null, null, 'internalwinner', 0, null);
         return $t;
+    }
+    
+    public static function getTournamentsAsJSON($theDatabase, $byUser = false) {
+        
+        $byUserSQL = "";
+        
+        if ($byUser) {
+            $uo = CUserData::getInstance();
+            $userId = $uo -> getId();
+            $byUserSQL = "WHERE creatorTournament_idUser = " . $userId;
+        }
+        
+        // Get the tablenames
+        $tTournament       = DBT_Tournament;
+
+        $query = <<< EOD
+            SELECT
+                idTournament AS id,
+                placeTournament AS place, 
+                activeTournament AS active,
+                dateFromTournament AS dateFrom,
+                dateTomTournament AS dateTom
+            FROM {$tTournament}
+            {$byUserSQL}
+            ORDER BY active DESC, dateFrom DESC
+            LIMIT 20;
+EOD;
+
+        $res = $theDatabase->Query($query);
+         
+        $tournamentViewList = array();
+         
+        while($row = $res->fetch_object()) {
+            $tournamentViewList[] = new view_CTournamentView($row->id, $row->place, $row->active, $row->dateFrom, $row->dateTom);
+        }
+        $res->close();
+        if (empty($tournamentViewList)) {
+            return "[]"; 
+        } else {;
+            foreach ($tournamentViewList as &$value) {
+                $value = $value->toJson();
+            }
+            return json_encode($tournamentViewList);
+        }
     }
     
     public function getTournaments($theDatabase, $byUser = false) {

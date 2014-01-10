@@ -27,6 +27,10 @@ tournament.config = {
     idPointFilterForm : "#dialogPointFilterForm",
     idPointFilterCbx  : "#pointFilterCbx",
     idPointFilterDiv  : "#pointFilterDiv",
+    idTable           : "#minaTurneringar table tbody",
+    
+    // Links & Paths
+    images            : "",
     
     // The selector for the score filter.
     sfSelector        : "td.sfCell input",
@@ -59,7 +63,8 @@ tournament.config = {
      *     functional.
      * </ul>
      */
-    init : function (responseCallback) {
+    init : function (responseCallback, imagesPath) {
+        tournament.config.images = imagesPath;
         tournament.config.responseCallbackFunction = responseCallback;
         $(this.idDateFrom).datepicker({
             onSelect : function() {
@@ -157,6 +162,27 @@ tournament.config = {
         $(tournament.config.idInfo).html('');
     },
     
+    createTable: function(tournamentListJson) {
+        var htmlOut = "";
+        var counter = 0;
+        for (var i in tournamentListJson) {
+            var lActive = "";
+            if (!tournamentListJson[i].active) {
+                lActive = " class='aktiv'"
+            }
+            htmlOut += "<tr>";
+            htmlOut += "<td" + lActive + ">";
+            htmlOut += "<a href='?p=admin_tournament&st=" + tournamentListJson[i].id +"'>" + tournamentListJson[i].fromDate + " - " + tournamentListJson[i].tomDate + "</a>";
+            htmlOut += "</td>";
+            htmlOut += "<td" + lActive + ">";
+            htmlOut += "<a href='?p=admin_tournamentdp&tId=" + tournamentListJson[i].id +"'><img style='vertical-align: bottom; border: 0;' src='" + tournament.config.images + "close_16.png' /></a>";
+            htmlOut += "</td>";
+            htmlOut += "</tr>";
+            counter++;
+        }
+        $(tournament.config.idTable).html(htmlOut);
+    },
+    
     /**
      * Callback method for the ajax call which is set up in the init method.
      * If errors are returned from the server, these are presented here.
@@ -164,18 +190,13 @@ tournament.config = {
     response : function (data) {
         tournament.clearErrorMsg();
         if (data) {
-            if (data.errorMsg){
-                tournament.createErrorMsg(data.errorMsg);
-            } else if (data.id) {
-                
-                if (data.aktiv === true) {
-                    $("#mtt" + data.id).removeClass("aktiv");
-                    $("#mtd" + data.id).removeClass("aktiv");
-                } else {
-                    $("#mtt" + data.id).addClass("aktiv");
-                    $("#mtd" + data.id).addClass("aktiv");
-                }
-                tournament.config.responseCallbackFunction(data.aktiv);
+            if (data.status != "ok"){
+                tournament.createErrorMsg(data.message);
+            } else {
+                console.log(data.active);
+                console.log(data.tournaments);
+                tournament.config.createTable(data.tournaments);
+                tournament.config.responseCallbackFunction(data.active);
             }
         }
     },

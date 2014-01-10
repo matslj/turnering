@@ -64,208 +64,205 @@ if (strcmp($active, "true") != 0) {
     $active = "false";
 }
 
-if (strcmp($useProxy, "true") != 0) {
-    $useProxy = "false";
-    
-    // If useProxy is false, then 'orgscore' is not a selectable tie break option.
-    if (strcmp($tieBreak1, "orgscore") == 0) {
-        $tieBreak1 = "";
-    }
-    if (strcmp($tieBreak2, "orgscore") == 0) {
-        $tieBreak2 = "";
-    }
-    if (strcmp($tieBreak3, "orgscore") == 0) {
-        $tieBreak3 = "";
-    }
-}
-
-// Check incoming data
-$pc->IsNumericOrDie($tId, 0);
-
-$pc->IsNumericOrDie($nrOfRounds, 0);
-$pc->IsNumericOrDie($byeScore, 0);
-
-$pc->IsNumericOrDie($hourFrom, 0);
-$pc->IsNumericOrDie($minuteFrom, 0);
-
-$pc->IsNumericOrDie($hourTom, 0);
-$pc->IsNumericOrDie($minuteTom, 0);
-
 $errorMsg = "Fel: <ul>";
 $errorFound = false;
 $errorMsgArray = array();
-
-// Error checking
-if ($hourFrom < 0 || $hourFrom > 23) {
-    $errorMsg = "felaktigt värde på timme: {$hourFrom}";
-    $errorMsgArray[] = $errorMsg;
-    $errorFound = true;
-}
-if ($hourTom < 0 || $hourTom > 23) {
-    $errorMsg = "felaktigt värde på timme: {$hourTom}";
-    $errorMsgArray[] = $errorMsg;
-    $errorFound = true;
-}
-if ($minuteFrom < 0 || $minuteFrom > 59) {
-    $errorMsg = "felaktigt värde på minuter: {$minuteFrom}";
-    $errorMsgArray[] = $errorMsg;
-    $errorFound = true;
-}
-if ($minuteTom < 0 || $minuteTom > 59) {
-    $errorMsg = "felaktigt värde på minuter: {$minuteTom}";
-    $errorMsgArray[] = $errorMsg;
-    $errorFound = true;
-}
-
-$df = null;
-$dt = null;
-
-// Try create dates
-try {
-    $df = new DateTime($dateFrom . " " . $hourFrom . ":" . $minuteFrom . ":01");
-} catch (Exception $exc) {
-    $errorMsg = "Startdatum har fel format. Vänligen kontrollera formatet.";
-    $errorMsgArray[] = $errorMsg;
-    $errorFound = true;
-}
-try {
-    $dt = new DateTime($dateTom . " " . $hourTom . ":" . $minuteTom . ":01"); 
-} catch (Exception $exc) {
-    $errorMsg = "Slutdatum har fel format. Vänligen kontrollera formatet.";
-    $errorMsgArray[] = $errorMsg;
-    $errorFound = true;
-}
-
-$tbResult = "";
-
-// -- Tie break validation --
-// 
-// If a tie break exists it must be a valid tie breaker, this is checked against
-// CHTMLHelpers::isSelectableTieBreaker(). If it is ok it will be added to
-// the string of tie breakers which will be sent to the data base.
-// 
-// Also a tie breaker must not be the same as another tiebreker. If so it does
-// not generate an error, it will simply be discarded.
-if (!empty($tieBreak1)) {
-    if (CHTMLHelpers::isSelectableTieBreaker($tieBreak1)) {
-        $tbResult = $tieBreak1;
-    } else {
-        $errorMsg = "Tie break 1 har inte ett giltigt värde.";
-        $errorMsgArray[] = $errorMsg;
-        $errorFound = true;
-    }
-}
-
-if (!empty($tieBreak2) && strcmp($tieBreak1, $tieBreak2) != 0) {
-    if (CHTMLHelpers::isSelectableTieBreaker($tieBreak2)) {
-        if (!empty($tbResult)) {
-            $tbResult = $tbResult . "," . $tieBreak2;
-        } else {
-            $tbResult = $tieBreak2;
-        }
-    } else {
-        $errorMsg = "Tie break 2 har inte ett giltigt värde.";
-        $errorMsgArray[] = $errorMsg;
-        $errorFound = true;
-    }
-}
-
-if (!empty($tieBreak3) && strcmp($tieBreak1, $tieBreak3) != 0 && strcmp($tieBreak2, $tieBreak3) != 0) {
-    if (CHTMLHelpers::isSelectableTieBreaker($tieBreak3)) {
-        if (!empty($tbResult)) {
-            $tbResult = $tbResult . "," . $tieBreak3;
-        } else {
-            $tbResult = $tieBreak3;
-        }
-    } else {
-        $errorMsg = "Tie break 3 har inte ett giltigt värde.";
-        $errorMsgArray[] = $errorMsg;
-        $errorFound = true;
-    }
-}
 
 // Create database object (to get the required sql-config)
 $db = new CDatabaseController();
 $mysqli = $db->Connect();
 
-// Get current tournament data
-$tournament = CTournament::getInstanceById($db, $tId);
+// If only the active property has been updated -> bypass all other controls
+if ($tempOnlyActiveUpdated) {
+    
+    $spChangeActiveTournament = DBSP_ChangeActiveTournament;
+    $query = "CALL {$spChangeActiveTournament}({$tId}, {$active});";
+    
+    $res = $db->MultiQuery($query);
+    
+    $nrOfStatements = $db->RetrieveAndIgnoreResultsFromMultiQuery();
+    
+    $log -> debug("Number of statements: " . $nrOfStatements);
+    // Must be exactly one successful statement.
+    if($nrOfStatements != 1) {
+        $errorMsg = "Fel: Det gick inte att uppdatera databasen";
+        $errorMsgArray[] = $errorMsg;
+        $errorFound = true;
+    }
+} else {
 
-// Terminate if logged in user is not admin or the creator of the tournament
-$intFilter->IsAdminOrIsCurrentUserOrTerminate($tournament->getCreator()->getId());
+    if (strcmp($useProxy, "true") != 0) {
+        $useProxy = "false";
 
-$log->debug("nrofrounds: " . $nrOfRounds . " currround: " . $tournament->getCurrentRound());
-if ($nrOfRounds < $tournament->getCurrentRound()) {
-    //$log->debug("HÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄR: ");
-    $errorMsg = "Totalt antal rundor måste vara fler än antalet redan spelade rundor.";
-    $errorMsgArray[] = $errorMsg;
-    $errorFound = true;
-}
+        // If useProxy is false, then 'orgscore' is not a selectable tie break option.
+        if (strcmp($tieBreak1, "orgscore") == 0) {
+            $tieBreak1 = "";
+        }
+        if (strcmp($tieBreak2, "orgscore") == 0) {
+            $tieBreak2 = "";
+        }
+        if (strcmp($tieBreak3, "orgscore") == 0) {
+            $tieBreak3 = "";
+        }
+    }
 
-if ($errorFound) {
-    if ($tempOnlyActiveUpdated) {
-        $spChangeActiveTournament = DBSP_ChangeActiveTournament;
-        $query = "CALL {$spChangeActiveTournament}({$tId}, {$active});";
-        $res = $db->MultiQuery($query);
-        $nrOfStatements = $db->RetrieveAndIgnoreResultsFromMultiQuery();
-        $log -> debug("Number of statements: " . $nrOfStatements);
-        // Must be exactly one successful statement.
-        if($nrOfStatements != 1) {
-            $_SESSION['errorMessage']	= "Fel: Det gick inte att uppdatera databasen";
+    // Check incoming data
+    $pc->IsNumericOrDie($tId, 0);
+
+    $pc->IsNumericOrDie($nrOfRounds, 0);
+    $pc->IsNumericOrDie($byeScore, 0);
+
+    $pc->IsNumericOrDie($hourFrom, 0);
+    $pc->IsNumericOrDie($minuteFrom, 0);
+
+    $pc->IsNumericOrDie($hourTom, 0);
+    $pc->IsNumericOrDie($minuteTom, 0);
+
+    // Error checking
+    if ($hourFrom < 0 || $hourFrom > 23) {
+        $errorMsg = "felaktigt värde på timme: {$hourFrom}";
+        $errorMsgArray[] = $errorMsg;
+        $errorFound = true;
+    }
+    if ($hourTom < 0 || $hourTom > 23) {
+        $errorMsg = "felaktigt värde på timme: {$hourTom}";
+        $errorMsgArray[] = $errorMsg;
+        $errorFound = true;
+    }
+    if ($minuteFrom < 0 || $minuteFrom > 59) {
+        $errorMsg = "felaktigt värde på minuter: {$minuteFrom}";
+        $errorMsgArray[] = $errorMsg;
+        $errorFound = true;
+    }
+    if ($minuteTom < 0 || $minuteTom > 59) {
+        $errorMsg = "felaktigt värde på minuter: {$minuteTom}";
+        $errorMsgArray[] = $errorMsg;
+        $errorFound = true;
+    }
+
+    $df = null;
+    $dt = null;
+
+    // Try create dates
+    try {
+        $df = new DateTime($dateFrom . " " . $hourFrom . ":" . $minuteFrom . ":01");
+    } catch (Exception $exc) {
+        $errorMsg = "Startdatum har fel format. Vänligen kontrollera formatet.";
+        $errorMsgArray[] = $errorMsg;
+        $errorFound = true;
+    }
+    try {
+        $dt = new DateTime($dateTom . " " . $hourTom . ":" . $minuteTom . ":01"); 
+    } catch (Exception $exc) {
+        $errorMsg = "Slutdatum har fel format. Vänligen kontrollera formatet.";
+        $errorMsgArray[] = $errorMsg;
+        $errorFound = true;
+    }
+
+    $tbResult = "";
+
+    // -- Tie break validation --
+    // 
+    // If a tie break exists it must be a valid tie breaker, this is checked against
+    // CHTMLHelpers::isSelectableTieBreaker(). If it is ok it will be added to
+    // the string of tie breakers which will be sent to the data base.
+    // 
+    // Also a tie breaker must not be the same as another tiebreker. If so it does
+    // not generate an error, it will simply be discarded.
+    if (!empty($tieBreak1)) {
+        if (CHTMLHelpers::isSelectableTieBreaker($tieBreak1)) {
+            $tbResult = $tieBreak1;
+        } else {
+            $errorMsg = "Tie break 1 har inte ett giltigt värde.";
+            $errorMsgArray[] = $errorMsg;
+            $errorFound = true;
         }
-        $mysqli->close();
-        $json = <<< EOD
-        {
-            "id": "{$tId}",
-            "aktiv": {$active}
+    }
+
+    if (!empty($tieBreak2) && strcmp($tieBreak1, $tieBreak2) != 0) {
+        if (CHTMLHelpers::isSelectableTieBreaker($tieBreak2)) {
+            if (!empty($tbResult)) {
+                $tbResult = $tbResult . "," . $tieBreak2;
+            } else {
+                $tbResult = $tieBreak2;
+            }
+        } else {
+            $errorMsg = "Tie break 2 har inte ett giltigt värde.";
+            $errorMsgArray[] = $errorMsg;
+            $errorFound = true;
         }
-EOD;
-        echo $json;
-        exit;
-    } else {
-        $mysqli->close();
-        $tempErrMsg = json_encode($errorMsgArray);
-        $json = <<< EOD
-        {
-            "errorMsg": {$tempErrMsg},
-            "id": {$tId}
+    }
+
+    if (!empty($tieBreak3) && strcmp($tieBreak1, $tieBreak3) != 0 && strcmp($tieBreak2, $tieBreak3) != 0) {
+        if (CHTMLHelpers::isSelectableTieBreaker($tieBreak3)) {
+            if (!empty($tbResult)) {
+                $tbResult = $tbResult . "," . $tieBreak3;
+            } else {
+                $tbResult = $tieBreak3;
+            }
+        } else {
+            $errorMsg = "Tie break 3 har inte ett giltigt värde.";
+            $errorMsgArray[] = $errorMsg;
+            $errorFound = true;
         }
-EOD;
-        echo $json;
-        exit;
+    }
+
+    // Get current tournament data
+    $tournament = CTournament::getInstanceById($db, $tId);
+
+    // Terminate if logged in user is not admin or the creator of the tournament
+    $intFilter->IsAdminOrIsCurrentUserOrTerminate($tournament->getCreator()->getId());
+
+    $log->debug("nrofrounds: " . $nrOfRounds . " currround: " . $tournament->getCurrentRound());
+    if ($nrOfRounds < $tournament->getCurrentRound()) {
+        //$log->debug("HÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄR: ");
+        $errorMsg = "Totalt antal rundor måste vara fler än antalet redan spelade rundor.";
+        $errorMsgArray[] = $errorMsg;
+        $errorFound = true;
+    }
+    
+    $dateFormat = "Y-m-d H:i:s";
+
+    $spEditSelectedValuesTournament = DBSP_EditSelectedValuesTournament;
+    $query = "CALL {$spEditSelectedValuesTournament}({$tId}, {$nrOfRounds}, {$byeScore}, '{$df->format($dateFormat)}', '{$dt->format($dateFormat)}', '{$tbResult}', {$useProxy}, {$active});";
+
+    // Perform the query
+    $res = $db->MultiQuery($query);
+    
+    $nrOfStatements = $db->RetrieveAndIgnoreResultsFromMultiQuery();
+    $log -> debug("Number of statements: " . $nrOfStatements);
+    
+    // Must be exactly one successful statement.
+    if($nrOfStatements != 1) {
+
+        $errorMsg = "Fel: Det gick inte att uppdatera databasen";
+        $errorMsgArray[] = $errorMsg;
+        $errorFound = true;
     }
 }
 
-$dateFormat = "Y-m-d H:i:s";
+$status = "ok";
+$message = "";
+$tournamentListJSON = "[]";
 
-$spEditSelectedValuesTournament = DBSP_EditSelectedValuesTournament;
-$query = "CALL {$spEditSelectedValuesTournament}({$tId}, {$nrOfRounds}, {$byeScore}, '{$df->format($dateFormat)}', '{$dt->format($dateFormat)}', '{$tbResult}', {$useProxy}, {$active});";
-
-// Perform the query
-$res = $db->MultiQuery($query);
-$nrOfStatements = $db->RetrieveAndIgnoreResultsFromMultiQuery();
-$log -> debug("Number of statements: " . $nrOfStatements);
-// Must be exactly one successful statement.
-if($nrOfStatements != 1) {
-    $_SESSION['errorMessage']	= "Fel: Det gick inte att uppdatera databasen";
+if ($errorFound) {
+    $status = "error";
+    $message = json_encode($errorMsgArray);
+} else {
+    $tournamentListJSON = CTournamentManager::getTournamentsAsJSON($db, true);
 }
 
 $mysqli->close();
 
-    $json = <<< EOD
-        {
-            "id": "{$tId}",
-            "aktiv": {$active}
-        }
+$json = <<<EOD
+{
+	"status": "{$status}",
+    "message": "{$message}",
+    "tournaments": {$tournamentListJSON},
+    "active": {$active}
+}
 EOD;
 echo $json;
 exit;
-
-// -------------------------------------------------------------------------------------------
-//
-// Redirect to another page
-//
-//$pc->RedirectTo($pc->POSTisSetOrSetDefault('redirect') . "&st={$tId}");
-//exit;
 
 ?>

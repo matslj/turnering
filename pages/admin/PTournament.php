@@ -293,6 +293,7 @@ if ($tournament != null) {
 $javaScript = <<<EOD
 (function($){
     function disableIfInactive(inActive) {
+        console.log("inActive: " + inActive);
         if (inActive) {
             $("#turneringForm input").prop('disabled', false);
             $("#turneringForm select").prop('disabled', false);
@@ -305,7 +306,7 @@ $javaScript = <<<EOD
     }
 
     $(document).ready(function() {
-        tournament.config.init(disableIfInactive);
+        tournament.config.init(disableIfInactive, '{$imageLink}');
         
         disableIfInactive({$tempJsTournamentActive});
         
@@ -432,11 +433,11 @@ foreach ($tournaments as $tempT) {
     }
     $tournamentsHtml .= <<< EOD
     <tr>
-        <td id="mtt{$tempT->getId()}"{$activeClass}>
+        <td{$activeClass}>
             <a href="{$redirect}&st={$tempT->getId()}">{$tempT->getTournamentDateFrom()->getDate()} - {$tempT->getTournamentDateTom()->getDate()}</a>
         </td>
-        <td id="mtd{$tempT->getId()}"{$activeClass}>
-            <a href="?p=mytournamentsp&tId={$tempT->getId()}"><img style='vertical-align: bottom; border: 0;' src='{$imageLink}close_16.png' /></a>
+        <td{$activeClass}>
+            <a href="?p=admin_tournamentdp&tId={$tempT->getId()}"><img style='vertical-align: bottom; border: 0;' src='{$imageLink}close_16.png' /></a>
         </td>
     </tr>
 EOD;

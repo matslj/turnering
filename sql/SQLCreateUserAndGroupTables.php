@@ -451,10 +451,18 @@ CREATE PROCEDURE {$spJoinTournament}
     IN anUserId INT
 )
 BEGIN    
-    INSERT INTO {$tUserTournament}
-        (UserTournament_idUser, UserTournament_idTournament, joinDateUserTournament)
-        VALUES
-        (anUserId, aTournamentId, NOW());
+    DECLARE validHits INT;
+    SELECT COUNT(*) INTO validHits
+    FROM {$tTournament} 
+    WHERE {$tTournament}.idTournament = aTournamentId AND 
+        NOW() < {$tTournament}.dateFromTournament;
+            
+    IF validHits = 1 THEN
+        INSERT INTO {$tUserTournament}
+            (UserTournament_idUser, UserTournament_idTournament, joinDateUserTournament)
+            VALUES
+            (anUserId, aTournamentId, NOW());
+    END IF;
 END;
 
 --
@@ -1029,6 +1037,10 @@ INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
         
 SET @aTournamentId = 0;
 CALL {$spCreateTournament}(1, 'Here', 3, 'Swiss', true, 1000, NOW(), NOW(), "internalwinner", false, null, @aTournamentId);
+SELECT @aTournamentId AS id;
+
+SET @aTournamentId = 0;
+CALL {$spCreateTournament}(8, 'Here', 3, 'Swiss', true, 1000, NOW() + interval 30 day, NOW() + interval 30 day, "internalwinner", false, null, @aTournamentId);
 SELECT @aTournamentId AS id;
 
 EOD;

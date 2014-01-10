@@ -25,10 +25,12 @@ $intFilter = new CInterceptionFilter();
 $intFilter->frontcontrollerIsVisitedOrDie();
 
 $selectedTournament = $pc->GETisSetOrSetDefault('st', 0);
-
 CPageController::IsNumericOrDie($selectedTournament);
 
 $uo = CUserData::getInstance();
+
+$redirect = "?p=" . $pc->computePage();
+$action = $redirect . "p";
 
 // -------------------------------------------------------------------------------------------
 //
@@ -39,8 +41,25 @@ $js = WS_JAVASCRIPT;
 $htmlLeft = "";
 $htmlMain = "";
 $htmlRight = "";
-$htmlHead = "";
-$javaScript = "";
+$htmlHead = <<<EOD
+    <!-- jQuery UI -->
+    <script src="{$js}jquery-ui/jquery-ui-1.9.2.custom.min.js"></script>
+
+    <!-- jQuery Form Plugin -->
+    <script type='text/javascript' src='{$js}myJs/build-min.js'></script>
+        
+    <style>
+
+    </style>
+EOD;
+    
+$javaScript = <<<EOD
+(function($){
+    $(document).ready(function() {
+        tournament.participation.init("{$action}", {$selectedTournament});
+    });
+})(jQuery);
+EOD;
 $needjQuery = TRUE;
 
 // In order to create tournament specific page names (so that I can use tournament specific
@@ -70,6 +89,7 @@ $mysqli = $db->Connect();
 $tManager = new CTournamentManager();
 
 $tournament = $tManager->getTournament($db, $selectedTournament);
+$participating = CTournamentManager::isPartOfTournament($db, $uo -> getId(), $selectedTournament);
 
 $title      = "Warhammer, {$tournament->getTournamentDateFrom()->getDate()}";
 
@@ -97,10 +117,10 @@ $result = Array();
 
 // Perform the query and manage results
 $result = $db->Query($query);
-$participantListHtml .= "<table>";
+$participantListHtml .= "<table id='participantList'>";
 while($row = $result->fetch_object()) {
     $numberOfParticipants++;
-    $participantListHtml .= "<tr>";
+    $participantListHtml .= "<tr id='plUser_{$row->idUser}'>"; // This is matched in the tournament.paticipation.js
     $imgName = CHTMLHelpers::getArmyValueName($row -> armyUser);
     $participantListHtml .= "<td>{$row->accountUser}</td>";
     $participantListHtml .= "<td>{$row -> armyUser}</td>";
@@ -111,6 +131,13 @@ $result -> close();
 // *********************************************
 // **      End get participant list
 // *********************************************
+
+$notAdminButAllowedToEdit = false;
+if ($tournament != null) {
+    if ($tournament->getCreator()->getId() == $uo -> getId()) {
+        $notAdminButAllowedToEdit = true;
+    }
+}
 
 // Get the SP names
 $spGetSidaDetails	= DBSP_PGetSidaDetails;
@@ -161,14 +188,12 @@ EOD;
 require_once(TP_PAGESPATH . 'admin/PHelpFragment.php');
 // -------------------- Slut Systemhjälp ----------------------
 
-
-
-$log->debug("Inför tie breaking!!");
-// -------------------------------------------------------------------------------------------
-//
-// Deal with the tie breaking functionality
-//
-
+/**
+ * Converter -> from tiebreaker-class to label.
+ * 
+ * @param type $theTb tie breaker object
+ * @return string the label matching the parameter tie breaker object
+ */
 function getTieBreakerName($theTb) {
     if ($theTb instanceof tiebreak_CInternalWinner) {
         return CHTMLHelpers::getLabelForTieBreakerValue("internalwinner");
@@ -187,6 +212,7 @@ function getTieBreakerName($theTb) {
         
 if ($tournament != null) {
 
+// Create text output for tie breaker(s) that has been used in the tournament.
 $tbList = $tournament->getTieBreakers();
 $dbTbOne = "";
 $dbTbTwo = "";
@@ -204,6 +230,19 @@ if (count($tbList) >= 3) {
     $dbTbThree = getTieBreakerName($tbList[2]);
     $tbOut = "1) " . $dbTbOne . ", 2) " . $dbTbTwo . ", 3) " . $dbTbThree;
 }
+
+$htmlLoginJoinLeave = "<div id='loginJoinLeave'>";
+if ($uo -> isAuthenticated()) {
+    if (!$participating) {
+        $htmlLoginJoinLeave .= "<a id='join' class='joinLeave' href='#'>Gå med i turneringen</a>";
+    } else {
+        $htmlLoginJoinLeave .= "<a id='leave' class='joinLeave' href='#'>Lämna turneringen</a>";
+    }
+} else {
+    $htmlLoginJoinLeave .= "<a id='login' href='?p=login'>Logga in</a>";
+}
+$htmlLoginJoinLeave .= "</div>";
+
 
 // -----------------------------------------------------------------------------
 // -- The main html content
@@ -254,11 +293,12 @@ $htmlMain .= <<< EOD
             </table>            
 </div>
 <hr class="style-two" />
+{$htmlLoginJoinLeave}
 <div id="deltagare">
     <div>
         <h3>Deltagare (so far)</h3>
         {$participantListHtml}
-        <p>Antal: {$numberOfParticipants}</p>
+        <p id="antalDeltagare">Antal: {$numberOfParticipants}</p>
     </div>
 </div>
 EOD;
@@ -266,13 +306,12 @@ EOD;
 } else {
 
 $htmlMain .= <<<EOD
-Ingen turnering är vald. Skapa en ny turnering eller välj en i listan.
+Vald turnering existerar inte.
 EOD;
 
 }
 
 $subNav = "";
-$uo = CUserData::getInstance();
 if ($uo -> isAuthenticated()) {
     $tStr = "";
     if (!empty($selectedTournament)) {

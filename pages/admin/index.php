@@ -39,6 +39,8 @@ switch($thePage) {
     break;
     case 'tournamentp': require_once(TP_PAGESPATH . 'admin/PTournamentProcess.php');
     break;
+    case 'tournamentdp': require_once(TP_PAGESPATH . 'admin/PTournamentDeleteProcess.php');
+    break;
     case 'tournamentpd': require_once(TP_PAGESPATH . 'admin/PTournamentPointFilterDialogProcess.php');
     break;
 

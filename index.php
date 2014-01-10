@@ -108,13 +108,8 @@ switch ($gPage) {
     //
     case 'tpast':    require_once(TP_PAGESPATH . 'page/PPlayedTournament.php'); break;
     case 'tupc':    require_once(TP_PAGESPATH . 'page/PUpcomingTournament.php'); break;
+    case 'tupcp':    require_once(TP_PAGESPATH . 'page/PUpcomingTournamentProcess.php'); break;
     case 'sbd':    require_once(TP_PAGESPATH . 'part/PScoreboard.php'); break;
-    
-    // 
-    // User tournaments
-    //
-    case 'mytournaments':    require_once(TP_PAGESPATH . 'page/PTournaments.php'); break;
-    case 'mytournamentsp':   require_once(TP_PAGESPATH . 'page/PTournamentsProcess.php'); break;
     
     //
     // Default case, trying to access some unknown page, should present some error message
