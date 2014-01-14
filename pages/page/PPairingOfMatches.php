@@ -51,14 +51,16 @@ $db = new CDatabaseController();
 $mysqli = $db->Connect();
 
 $tManager = new CTournamentManager();
+$log->debug("0: selected t = " . $selectedTournament);
 $tournament = $tManager->getTournament($db, $selectedTournament);
+$log->debug("1");
 if ($tournament -> getCreator() -> getId() == $uo -> getId()) {
     $admin = true;
 }
 $tournamentHtml = $tManager->getTournamentMatchupsAsHtml($db, $tournament, $admin);
-
+$log->debug("2");
 $scoreProxyManager = $tournament->getScoreProxyManager();
-
+$log->debug("3");
 $htmlHead = "";
 $javaScript = "";
 
@@ -72,11 +74,14 @@ $mysqli->close();
 $imageLink = WS_IMAGES;
 
 $nR = $tournament->getNextRound();
-$redirectRecreate = $actionProcess . "&cr={$nR}";
+$log->debug("4: next round: " . $nR . " and number of rounds: " . $tournament->getNrOfRounds() . " admin: " . $admin);
+$redirectRecreate = $actionProcess . "&cr={$nR}&t={$selectedTournament}";
 $nextLink = "<a href='{$redirectRecreate}'><img style='border: 0;' src='{$imageLink}play_48.png' /></a>";
 if ($nR > $tournament->getNrOfRounds() || !$admin) {
+    $log -> debug("Det blir ingen next round");
     $nextLink = "";
 }
+$log -> debug("nextLink: " . $nextLink);
 
 // -------------------------------------------------------------------------------------------
 //

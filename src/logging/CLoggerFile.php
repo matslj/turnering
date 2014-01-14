@@ -26,7 +26,7 @@ class logging_CLoggerFile extends logging_CLogger {
             $filename = TP_LOGPATH . FILENAME;
             $this -> fh = null;
 
-            $log = "*********** " . date("Y/m/d H:i:s"). substr((string)microtime(), 1, 6) . " ***********" . NL;
+            $log = "*********** " . date("Y/m/d H:i:s"). substr((string)microtime(), 1, 6) . " in " . basename($aLogger) . " ***********" . NL;
             
             $mode = "";
             if (file_exists($filename)) {

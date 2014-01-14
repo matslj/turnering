@@ -51,7 +51,7 @@ class CScoreProxyManager {
      */
     private function loadScoreFilter($theProxyFilterAsJsonString) {
         self::$LOG->debug(" **** In CScoreProxyManager - loadScoreFilter() **** ");
-        self::$LOG->debug(" *    theProxyFilterAsJsonString: \r\n" . $theProxyFilterAsJsonString);
+        // self::$LOG->debug(" *    theProxyFilterAsJsonString: \r\n" . $theProxyFilterAsJsonString);
         $scoreFilter = array();
         $id = 1; // This is a dummyId and has nothing to do with the id in the database.
         
@@ -98,15 +98,15 @@ class CScoreProxyManager {
         self::$LOG->debug(" **** In CScoreProxyManager - getScoreProxyForDiffBetweenPlayers(" . $playerOneScore . ", " . $playerTwoScore . ")");
         $playerOneScore = $playerOneScore == null || empty($playerOneScore) ? 0 : $playerOneScore;
         $playerTwoScore = $playerTwoScore == null || empty($playerTwoScore) ? 0 : $playerTwoScore;
-        self::$LOG->debug("in proxydiff 2: " . $playerOneScore . " - " . $playerTwoScore);
+        // self::$LOG->debug("in proxydiff 2: " . $playerOneScore . " - " . $playerTwoScore);
         $orgDiff = $playerOneScore - $playerTwoScore;
         $diffValue = abs($orgDiff);
-        self::$LOG->debug("---- diff: " . $diffValue);
+        // self::$LOG->debug("---- diff: " . $diffValue);
         $foundPointProxy = null;
         foreach ($this -> scoreFilter as $value) {
-            self::$LOG->debug("proxy: " . print_r($value, true));
+            // self::$LOG->debug("proxy: " . print_r($value, true));
             if ($value -> getDiffLow() <= $diffValue && $value -> getDiffHigh() >= $diffValue) {
-                self::$LOG->debug("---- FOUND PROXY!!! -----");
+                // self::$LOG->debug("---- FOUND PROXY!!! -----");
                 $foundPointProxy = $value;
                 break;
             }

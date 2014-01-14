@@ -57,7 +57,7 @@ $returnPage = substr($returnPage, 0, $returnPageLength - 2);
 //
 // Redirect to another page
 //
-$pc->RedirectTo($returnPage);
+$pc->RedirectTo($returnPage . "&st=" . $tId);
 exit;
 
 ?>

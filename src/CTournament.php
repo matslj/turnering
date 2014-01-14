@@ -38,6 +38,8 @@ class CTournament {
     private $scoreProxyManager;
 
     private function __construct($id, $creator, $place, $nrOfRounds, $type, $theActive, $byeScore, $tournamentDateFrom, $tournamentDateTom, $creationDate, $theTieBreakers, $theUseProxy, $theProxyFilter) {
+        self::$LOG -> debug("### Start CTournament constructor");
+        
         $this->id = $id;
         $this->creator = $creator;
         $this->place = $place;
@@ -68,6 +70,7 @@ class CTournament {
         $this->useProxy = $theUseProxy != 0 ? true : false;
         $this->scoreProxyManager = new CScoreProxyManager($theProxyFilter);
 
+        self::$LOG -> debug("### End CTournament constructor");
     }
     
     public static function getEmptyInstance() {
@@ -86,7 +89,7 @@ class CTournament {
         
         self::$LOG = logging_CLogger::getInstance(__FILE__);
         
-        self::$LOG -> debug("wwww");
+        self::$LOG -> debug("---- Start of getInstanceById(db, {$theTournamentId}) ----");
         
         // Get the tablenames
         $tTournament       = DBT_Tournament;
@@ -114,30 +117,26 @@ EOD;
          $res = $theDatabase->Query($query);
          $row = $res->fetch_object();
          
-         self::$LOG -> debug("qqqq");
-         
          $tempTournament = null;
          
          if (!empty($row)) {
-             self::$LOG -> debug("tttt");
+             self::$LOG -> debug("In getInstanceById(db, {$theTournamentId}) - found tournament with id {$theTournamentId} in the database.");
              $users = user_CUserRepository::getInstance($theDatabase);
              $user = $users->getUser($row->creator);
              $tempTournament = new self($row->id, $user, $row->place, $row->rounds, $row->type, $row->active, $row->byeScore, $row->dateFrom, $row->dateTom, $row->creationDate, $row->tieBreakers, $row->useProxy, $row->scoreFilter);
          }
          $res->close();
          
-         self::$LOG -> debug("gotten temp tournament in CTournament");
+         self::$LOG -> debug("In getInstanceById(db, {$theTournamentId}) - created a temporary instance of CTournament");
          
          // Get matchups, on tournament, from DB
          if (!empty($tempTournament)) {
-             self::$LOG -> debug("qqddddddddqq");
              $tempTournament->currentRound = 1;
-             self::$LOG -> debug("qquuuuuuuuuuuuuqq");
              $tempTournament->currentRoundEdited = false;
              $tempTournament->currentRoundComplete = true;
-             self::$LOG -> debug("before match load. current round: " . $tempTournament->currentRound . " edited: " . $tempTournament->currentRoundEdited . " complete: " . $tempTournament->currentRoundComplete);
+             self::$LOG -> debug("In getInstanceById(db, {$theTournamentId}) - before match load. current round: " . $tempTournament->currentRound . " edited: " . $tempTournament->currentRoundEdited . " complete: " . $tempTournament->currentRoundComplete);
              $tempTournament->tournamentMatrix = self::populateMatrixFromDB($theDatabase, $tempTournament->id, $tempTournament->scoreProxyManager, $tempTournament->currentRound, $tempTournament->currentRoundEdited, $tempTournament->currentRoundComplete);
-             self::$LOG -> debug("after match load. current round: " . $tempTournament->currentRound . " edited: " . $tempTournament->currentRoundEdited . " complete: " . $tempTournament->currentRoundComplete);
+             self::$LOG -> debug("In getInstanceById(db, {$theTournamentId}) - after match load. current round: " . $tempTournament->currentRound . " edited: " . $tempTournament->currentRoundEdited . " complete: " . $tempTournament->currentRoundComplete);
          } else {
              return self::getEmptyInstance();
          }
@@ -145,15 +144,16 @@ EOD;
     }
     
     public function createOrRecreateRound($theDatabase, $theRoundToCreate = 0) { // Was 1
-        
+        self::$LOG -> debug(" **** I createOrRecreateRound(db, {$theRoundToCreate}) ****");
         // If no matchups where found in db -> create the first round and store it in DB
         if ($this->tournamentMatrix == null || ($theRoundToCreate == 1 && $this->currentRound == 1)) { //  && !$this->currentRoundEdited
-            self::$LOG -> debug("inne häär");
+            $logMessage = ($theRoundToCreate == 1 && $this->currentRound == 1) ? "Kommer att återskapa första rundan." : "Skapar första rundan.";
+            self::$LOG -> debug($logMessage);
             $this->tournamentMatrix = $this->createFirstRound($theDatabase);
-            $this->currentRoundComplete = false;
+            $this->currentRoundComplete = (count($this ->getActiveUsers($theDatabase)) == 1) ? true : false;
             $this->currentRoundEdited = false;
         } else if ($theRoundToCreate < $this->currentRound && $theRoundToCreate > 0) {
-            self::$LOG -> debug("dags för delete");
+            self::$LOG -> debug("Kommer att radera runda '{$this->currentRound}'");
             $this->deleteCurrentRound($theDatabase);
         } else if ($theRoundToCreate > 1) {
             self::$LOG -> debug("more rounds. current round: " . $this->currentRound . " the round to create: " . $theRoundToCreate . " edited: " . $this->currentRoundEdited . " complete: " . $this->currentRoundComplete);
@@ -297,8 +297,8 @@ EOD;
     // **
     
     private function createFirstRound($theDatabase) {
-        $userRepository = user_CUserRepository::getInstance($theDatabase);
-        $tempOldUserList = $userRepository->getActiveUsers();
+        
+        $tempOldUserList = $this -> getActiveUsers($theDatabase);
         
         $tempUserList = array();
         foreach ($tempOldUserList as $value) {
@@ -341,17 +341,59 @@ EOD;
             $tempMatrix = array();
             $tempMatrix[$round] = $result;
             
+        } else {
+            $this ->deleteCurrentRound($theDatabase);
         }
         return $tempMatrix;
     }
     
+    private function getActiveUsers($theDatabase) {
+        // Fetch all users active in this tournament.
+        $tUserTournament = DBT_UserTournament;
+        $tableUser       = DBT_User;
+        $tableGroup      = DBT_Group;
+        $tableGroupMember  = DBT_GroupMember;
+
+        $query = <<< EOD
+            SELECT
+                    idUser,
+                    accountUser,
+                    nameUser,
+                    lastLoginUser,
+                    emailUser,
+                    armyUser,
+                    activeUser,
+                    avatarUser,
+                    idGroup,
+                    nameGroup
+            FROM {$tableUser} AS U
+                    INNER JOIN {$tUserTournament} AS UT 
+                        ON UserTournament_idUser = idUser
+                    INNER JOIN {$tableGroupMember} AS GM
+                        ON U.idUser = GM.GroupMember_idUser
+                    INNER JOIN {$tableGroup} AS G
+                        ON G.idGroup = GM.GroupMember_idGroup
+            WHERE deletedUser = FALSE AND 
+                  U.activeUser = TRUE AND
+                  UT.UserTournament_idTournament = {$this->id};
+EOD;
+
+        $res = $theDatabase->Query($query);
+        $tempUsers = array();
+        while($row = $res->fetch_object()) {
+            $tempActive = $row->activeUser == 1 ? true : false;
+            $tempUsers[$row->idUser] = new user_CUserData($row->idUser, $row->accountUser, $row->nameUser, $row->emailUser, $row->avatarUser, $row->idGroup, $row->armyUser, $tempActive);
+        }
+        $res -> close();
+        
+        return $tempUsers;
+    }
+    
     public function getParticipantsSortedByScore($theDatabase, $theRound = 0) {
         
-        // Fetch all users active in this tournament.
-        $userRepository = user_CUserRepository::getInstance($theDatabase);
-        $tempOldUserList = $userRepository->getActiveUsers();
+        $tempOldUserList = $this ->getActiveUsers($theDatabase);
         
-        // Not thet the users are fetched, create a copy of them and calulate
+        // Now that the users are fetched, create a copy of them and calulate
         // every players score up to (but not including - if not 0, then sum all up) the round that we
         // are about to create.
         $tempUserList = array();
@@ -795,7 +837,7 @@ EOD;
             $deleteSign = "";
             if ($theRound > 1) {
                 $dr = $theRound - 1;
-                $deleteSign = "<a href='{$siteLink}?p=matchupap&cr={$dr}' onclick='return confirm(\"Vill du verkligen radera den här rundan?\")'><img src='{$imageLink}/close_24.png'></a>";
+                $deleteSign = "<a href='{$siteLink}?p=matchupap&cr={$dr}&t={$this -> id}' onclick='return confirm(\"Vill du verkligen radera den här rundan?\")'><img src='{$imageLink}/close_24.png'></a>";
             }
  
             $thePanel =  <<< EOD
@@ -803,7 +845,7 @@ EOD;
                     <a href='{$siteLink}?p=pdfmatchup&round={$theRound}'>
                         <img src='{$imageLink}/PDF-icon.png'>
                     </a>
-                    <a href='{$siteLink}?p=matchupap&cr={$theRound}' onclick='return confirm("Vill du verkligen göra om den här rundan?")'>
+                    <a href='{$siteLink}?p=matchupap&cr={$theRound}&t={$this -> id}' onclick='return confirm("Vill du verkligen göra om den här rundan?")'>
                         <img src='{$imageLink}/recycle_24.png' alt='Skriv ut som pdf'>
                     </a>
                     {$deleteSign}
