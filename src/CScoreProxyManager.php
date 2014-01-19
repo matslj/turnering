@@ -101,22 +101,24 @@ class CScoreProxyManager {
         // self::$LOG->debug("in proxydiff 2: " . $playerOneScore . " - " . $playerTwoScore);
         $orgDiff = $playerOneScore - $playerTwoScore;
         $diffValue = abs($orgDiff);
-        // self::$LOG->debug("---- diff: " . $diffValue);
+        // self::$LOG->debug("---- orgdiff: " . $orgDiff . " ---- diff: " . $diffValue);
         $foundPointProxy = null;
         foreach ($this -> scoreFilter as $value) {
             // self::$LOG->debug("proxy: " . print_r($value, true));
             if ($value -> getDiffLow() <= $diffValue && $value -> getDiffHigh() >= $diffValue) {
-                // self::$LOG->debug("---- FOUND PROXY!!! -----");
+                // self::$LOG->debug("---- FOUND PROXY!!! ----- " . $value -> getDiffLow() . "-" . $value -> getDiffHigh() . "," . $value -> getScorePlayerOne() . "-" . $value -> getScorePlayerTwo());
                 $foundPointProxy = $value;
                 break;
             }
         }
         if ($orgDiff < 0 && $foundPointProxy != null) {
+            // self::$LOG->debug("shifting ");
+            $foundPointProxy = $foundPointProxy->getCopy();
             $tempVal = $foundPointProxy->getScorePlayerOne();
             $foundPointProxy->setScorePlayerOne($foundPointProxy->getScorePlayerTwo());
             $foundPointProxy->setScorePlayerTwo($tempVal);
         }
-        //self::$LOG->debug("end proxydiff: " . print_r($foundPointProxy, true));
+        // self::$LOG->debug("end proxydiff: " . print_r($foundPointProxy, true));
         return $foundPointProxy;
     }
     

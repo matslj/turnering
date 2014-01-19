@@ -75,6 +75,9 @@ $htmlHead = <<<EOD
     <script src="{$js}jquery-ui/jquery-ui-1.9.2.custom.min.js"></script>
         
     <style>
+        #matchesTabs {
+            margin-top: 20px;
+        }
         .round {
             background-color: inherit;
         }
@@ -92,6 +95,17 @@ $htmlHead = <<<EOD
         }
         a.ui-tabs-anchor {
             outline: 0;
+        }
+        .proxyLeft {
+            padding-right: 20px;
+            color: #33CC33;
+        }
+        .proxyRight {
+            padding-left: 20px;
+            color: #33CC33;
+        }
+        .konfLabel {
+            font-weight: bold;
         }
     </style>
 EOD;
@@ -254,7 +268,7 @@ $page = new CHTMLPage(WS_STYLESHEET);
 // Creating the left menu panel
 $htmlLeft = ""; // $page ->PrepareLeftSideNavigationBar(ADMIN_MENU_NAVBAR, "Admin - undermeny");
 
-$page->printPage('Turneringsdata', $htmlLeft, $htmlMain, $htmlRight, $htmlHead, $javaScript, $needjQuery);
+$page->printPage('Spelad turnering', $htmlLeft, $htmlMain, $htmlRight, $htmlHead, $javaScript, $needjQuery);
 exit;
 
 ?>

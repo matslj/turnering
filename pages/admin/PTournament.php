@@ -74,7 +74,7 @@ if ($createTournament == 1) {
     $tournament = $tManager->getTournament($db, $selectedTournament);
 }
 
-$tournaments = $tManager->getTournaments($db, true);
+$tournaments = $tManager->getTournaments($db, !$admin);
 
 // $tournament = $tManager->getTournament($db);
 $log->debug("efter trour");
@@ -431,13 +431,14 @@ foreach ($tournaments as $tempT) {
     if(!$tempT->getActive()) {
         $activeClass = " class='aktiv'";
     }
+    $deletable = $tempT->isDeletable() ? "<a href='?p=admin_tournamentdp&tId={$tempT->getId()}'><img style='vertical-align: bottom; border: 0;' src='{$imageLink}close_16.png' /></a>" : "&nbsp;";
     $tournamentsHtml .= <<< EOD
     <tr>
         <td{$activeClass}>
             <a href="{$redirect}&st={$tempT->getId()}">{$tempT->getTournamentDateFrom()->getDate()} - {$tempT->getTournamentDateTom()->getDate()}</a>
         </td>
         <td{$activeClass}>
-            <a href="?p=admin_tournamentdp&tId={$tempT->getId()}"><img style='vertical-align: bottom; border: 0;' src='{$imageLink}close_16.png' /></a>
+            {$deletable}
         </td>
     </tr>
 EOD;
@@ -529,6 +530,13 @@ $htmlMain .= <<< EOD
             <div class="errorMsg">
             </div>
             <table>
+                <tr>
+                    <td class='konfLabel'><label for="place">Plats: </label></td>
+                    <td>
+                        <input id='place' type='text' name='place' value='{$tournament->getPlace()}' />
+                        <span class='example'>(var turneringen spelas)</span>
+                    </td>
+                </tr>
                 <tr>
                     <td class='konfLabel'><label for="dateFrom">Start: </label></td>
                     <td>

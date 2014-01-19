@@ -175,7 +175,12 @@ tournament.config = {
             htmlOut += "<a href='?p=admin_tournament&st=" + tournamentListJson[i].id +"'>" + tournamentListJson[i].fromDate + " - " + tournamentListJson[i].tomDate + "</a>";
             htmlOut += "</td>";
             htmlOut += "<td" + lActive + ">";
-            htmlOut += "<a href='?p=admin_tournamentdp&tId=" + tournamentListJson[i].id +"'><img style='vertical-align: bottom; border: 0;' src='" + tournament.config.images + "close_16.png' /></a>";
+            var tempRounds = parseInt(tournamentListJson[i].playedRounds, 10);
+            if (!tempRounds || tempRounds <= 1) {
+                htmlOut += "<a href='?p=admin_tournamentdp&tId=" + tournamentListJson[i].id +"'><img style='vertical-align: bottom; border: 0;' src='" + tournament.config.images + "close_16.png' /></a>";
+            } else {
+                htmlOut += "&nbsp;"
+            }
             htmlOut += "</td>";
             htmlOut += "</tr>";
             counter++;

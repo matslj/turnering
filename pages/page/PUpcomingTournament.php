@@ -37,6 +37,7 @@ $action = $redirect . "p";
 // Page specific code
 //
 $js = WS_JAVASCRIPT;
+$siteLink = WS_SITELINK;
 
 $htmlLeft = "";
 $htmlMain = "";
@@ -49,7 +50,9 @@ $htmlHead = <<<EOD
     <script type='text/javascript' src='{$js}myJs/build-min.js'></script>
         
     <style>
-
+        .konfLabel {
+            font-weight: bold;
+        }
     </style>
 EOD;
     
@@ -57,6 +60,22 @@ $javaScript = <<<EOD
 (function($){
     $(document).ready(function() {
         tournament.participation.init("{$action}", {$selectedTournament});
+            
+        $("#dialog").dialog({
+            autoOpen: false,
+            width: 400,
+            modal: true,
+            buttons: null,
+            open: function(event) {
+                $(this).load("{$siteLink}?p=spl&st={$selectedTournament}");
+            }
+        });
+        
+        // Bind link to dialog open
+        $("#pLink").click(function(event) {
+            $("#dialog").dialog("open");
+            event.preventDefault();
+        });
     });
 })(jQuery);
 EOD;
@@ -171,7 +190,6 @@ require_once(TP_PAGESPATH . 'page/PPageEditDialog.php');
 
 // Link to images
 $imageLink = WS_IMAGES;
-$siteLink = WS_SITELINK;
             
 // ------------------------------------------------------------
 // --
@@ -296,10 +314,11 @@ $htmlMain .= <<< EOD
 {$htmlLoginJoinLeave}
 <div id="deltagare">
     <div>
-        <h3>Deltagare (so far)</h3>
+        <h3>Deltagare (so far) <a id="pLink" href="#">Fler/Färre</a></h3>
         {$participantListHtml}
         <p id="antalDeltagare">Antal: {$numberOfParticipants}</p>
     </div>
+    <div id="dialog" title="Administrera deltagare"></div>
 </div>
 EOD;
             
@@ -332,7 +351,7 @@ $page = new CHTMLPage(WS_STYLESHEET);
 // Creating the left menu panel
 $htmlLeft = ""; // $page ->PrepareLeftSideNavigationBar(ADMIN_MENU_NAVBAR, "Admin - undermeny");
 
-$page->printPage('Turneringsdata', $htmlLeft, $htmlMain, $htmlRight, $htmlHead, $javaScript, $needjQuery, $subNav);
+$page->printPage('Kommande turnering', $htmlLeft, $htmlMain, $htmlRight, $htmlHead, $javaScript, $needjQuery, $subNav);
 exit;
 
 ?>

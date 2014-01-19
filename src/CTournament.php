@@ -21,6 +21,7 @@ class CTournament {
     private $tournamentDateFrom; // class CDate
     private $tournamentDateTom;  // class CDate
     private $creationDate;       // class CDate
+    private $playedNrOfRounds;
     
     private $useProxy;
     
@@ -40,6 +41,7 @@ class CTournament {
     private function __construct($id, $creator, $place, $nrOfRounds, $type, $theActive, $byeScore, $tournamentDateFrom, $tournamentDateTom, $creationDate, $theTieBreakers, $theUseProxy, $theProxyFilter) {
         self::$LOG -> debug("### Start CTournament constructor");
         
+        $this->playedNrOfRounds = null;
         $this->id = $id;
         $this->creator = $creator;
         $this->place = $place;
@@ -82,6 +84,7 @@ class CTournament {
     }
     
     public static function getInstanceByParameters($id, $creator, $place, $nrOfRounds, $type, $theActive, $byeScore, $tournamentDateFrom, $tournamentDateTom, $creationDate, $theTieBreakers, $theUseProxy, $theProxyFilter) {
+        self::$LOG = logging_CLogger::getInstance(__FILE__);
         return new self($id, $creator, $place, $nrOfRounds, $type, $theActive, $byeScore, $tournamentDateFrom, $tournamentDateTom, $creationDate, $theTieBreakers, $theUseProxy, $theProxyFilter);
     }
     
@@ -287,6 +290,20 @@ EOD;
         $currentTime = time();
         return ($currentTime <= $this->tournamentDateFrom -> getTimestamp());
     }
+    public function isDeletable() {
+        return $this->getPlayedNrOfRounds() <= 1;
+    }
+    
+    public function getPlayedNrOfRounds() {
+        if ($this->playedNrOfRounds == null) {
+            $this->playedNrOfRounds = $this->getNrOfRoundsInMatrix();
+        }
+        return $this->playedNrOfRounds;
+    }
+
+    public function setPlayedNrOfRounds($playedNrOfRounds) {
+        $this->playedNrOfRounds = $playedNrOfRounds;
+    }
     
     public function getNrOfRoundsInMatrix() {
         return count($this->tournamentMatrix);
@@ -347,6 +364,13 @@ EOD;
         return $tempMatrix;
     }
     
+    /**
+     * Get all active users in the tournament. An active user is a user who is a
+     * part of the UserTournament-table for the tournament.
+     * 
+     * @param type $theDatabase
+     * @return \user_CUserData
+     */
     private function getActiveUsers($theDatabase) {
         // Fetch all users active in this tournament.
         $tUserTournament = DBT_UserTournament;
@@ -389,9 +413,66 @@ EOD;
         return $tempUsers;
     }
     
-    public function getParticipantsSortedByScore($theDatabase, $theRound = 0) {
+    /**
+     * Get participants of a tournament. The participants are either a part
+     * of the tournament or has a match result in the tournament. This means
+     * that the participant can have left the tournament and still be included
+     * in this list.
+     * 
+     * @param type $theDatabase
+     * @return \user_CUserData
+     */
+    private function getTournamentUsers($theDatabase) {
+        $tempUsers = $this ->getActiveUsers($theDatabase);
         
-        $tempOldUserList = $this ->getActiveUsers($theDatabase);
+        // Fetch all users active in this tournament.
+        $tMatch = DBT_Match;
+        $tableUser       = DBT_User;
+        $tableGroup      = DBT_Group;
+        $tableGroupMember  = DBT_GroupMember;
+
+        $query = <<< EOD
+            SELECT
+                    idUser,
+                    accountUser,
+                    nameUser,
+                    lastLoginUser,
+                    emailUser,
+                    armyUser,
+                    activeUser,
+                    avatarUser,
+                    idGroup,
+                    nameGroup
+            FROM {$tableUser} AS U
+                    INNER JOIN {$tMatch} AS UT 
+                        ON playerOneMatch_idUser = idUser OR playerTwoMatch_idUser = idUser
+                    INNER JOIN {$tableGroupMember} AS GM
+                        ON U.idUser = GM.GroupMember_idUser
+                    INNER JOIN {$tableGroup} AS G
+                        ON G.idGroup = GM.GroupMember_idGroup
+            WHERE deletedUser = FALSE AND 
+                  U.activeUser = TRUE AND
+                  UT.tRefMatch_idTournament = {$this->id};
+EOD;
+
+        $res = $theDatabase->Query($query);
+        while($row = $res->fetch_object()) {
+            $tempActive = $row->activeUser == 1 ? true : false;
+            $tempUsers[$row->idUser] = new user_CUserData($row->idUser, $row->accountUser, $row->nameUser, $row->emailUser, $row->avatarUser, $row->idGroup, $row->armyUser, $tempActive);
+        }
+        $res -> close();
+        
+        return $tempUsers;
+    }
+    
+    public function getParticipantsSortedByScore($theDatabase, $theRound = 0, $forScoreBoard = false) {
+        
+        $tempOldUserList = null;
+        if ($forScoreBoard) {
+            $tempOldUserList = $this ->getTournamentUsers($theDatabase);
+        } else {
+            $tempOldUserList = $this ->getActiveUsers($theDatabase);
+        }
         
         // Now that the users are fetched, create a copy of them and calulate
         // every players score up to (but not including - if not 0, then sum all up) the round that we

@@ -103,15 +103,15 @@ if ($res != null) {
     // Kolla vilken action som gäller och kolla hur det gick utfrån detta
     if (strcmp($action, 'edit') == 0) {
         if($nrOfStatements != 1) {
-            $_SESSION['errorMessage']	= "Fel: kunde inte uppdatera användare";
+            $_SESSION['errorMessage']	= "Kunde inte uppdatera användare";
         }
     } else if (strcmp($action, 'create') == 0) {
         if($nrOfStatements != 2) {
-            $_SESSION['errorMessage']	= "Fel: kunde inte skapa användare";
+            $_SESSION['errorMessage']	= "Kunde inte skapa användare";
         }
     } else if (strcmp($action, 'delete') == 0) {
-        if($nrOfStatements != 1) {
-            $_SESSION['errorMessage']	= "Fel: kunde inte radera användare";
+        if($nrOfStatements != 2) {
+            $_SESSION['errorMessage']	= "Kunde inte radera användare - detta beror antingen på att användaren är skapare av en turnering (radera turneringen först) eller att användaren har matchresultat i en/flera turnering(ar).";
         }
     }
 }

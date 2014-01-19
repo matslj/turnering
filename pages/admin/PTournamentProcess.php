@@ -30,6 +30,7 @@ $intFilter->UserIsSignedInOrRecirectToSignIn();
 // Take care of _GET/_POST variables. Store them in a variable (if they are set).
 //
 $tId        = $pc->POSTisSetOrSetDefault('tId',      '0');
+$place 	= $pc->POSTisSetOrSetDefault('place',  '');
 $dateFrom 	= $pc->POSTisSetOrSetDefault('dateFrom',  '');
 $hourFrom 	= $pc->POSTisSetOrSetDefault('hourFrom',   0);
 $minuteFrom = $pc->POSTisSetOrSetDefault('minuteFrom', 0);
@@ -46,6 +47,7 @@ $active     = $pc->POSTisSetOrSetDefault('activeFilterCbx', 'false');
 
 $tempOnlyActiveUpdated = empty($dateFrom)
                       && empty($dateTom)
+                      && empty($place)
                       && empty($hourFrom)
                       && empty($minuteFrom)
                       && empty($hourTom)
@@ -71,6 +73,8 @@ $errorMsgArray = array();
 // Create database object (to get the required sql-config)
 $db = new CDatabaseController();
 $mysqli = $db->Connect();
+
+$place = $mysqli -> real_escape_string($place);
 
 // If only the active property has been updated -> bypass all other controls
 if ($tempOnlyActiveUpdated) {
@@ -224,7 +228,7 @@ if ($tempOnlyActiveUpdated) {
     $dateFormat = "Y-m-d H:i:s";
 
     $spEditSelectedValuesTournament = DBSP_EditSelectedValuesTournament;
-    $query = "CALL {$spEditSelectedValuesTournament}({$tId}, {$nrOfRounds}, {$byeScore}, '{$df->format($dateFormat)}', '{$dt->format($dateFormat)}', '{$tbResult}', {$useProxy}, {$active});";
+    $query = "CALL {$spEditSelectedValuesTournament}({$tId}, '{$place}', {$nrOfRounds}, {$byeScore}, '{$df->format($dateFormat)}', '{$dt->format($dateFormat)}', '{$tbResult}', {$useProxy}, {$active});";
 
     // Perform the query
     $res = $db->MultiQuery($query);
@@ -241,6 +245,9 @@ if ($tempOnlyActiveUpdated) {
     }
 }
 
+$uo = CUserData::getInstance();
+$admin = $uo->isAdmin();
+
 $status = "ok";
 $message = "";
 $tournamentListJSON = "[]";
@@ -249,7 +256,7 @@ if ($errorFound) {
     $status = "error";
     $message = json_encode($errorMsgArray);
 } else {
-    $tournamentListJSON = CTournamentManager::getTournamentsAsJSON($db, true);
+    $tournamentListJSON = CTournamentManager::getTournamentsAsJSON($db, !$admin);
 }
 
 $mysqli->close();

@@ -168,6 +168,7 @@ EOD;
     }
     
     public function createTournament($theDatabase) {
+        self::$LOG -> debug(" **** In CTournamentManager in createTournament(db) **** ");
 //        $tournament = $this->getActiveTournament($theDatabase);
 //        if (!empty($tournament)) {
 //            return $tournament;
@@ -191,9 +192,9 @@ EOD;
 
             // Close the result set
             $results[1]->close();
-            
+            self::$LOG -> debug(" ---- In CTournamentManager in createTournament(db) - it went well up to here ");
             $t = CTournament::getInstanceByParameters($tId, $uo, "", 3, "Swiss", 1, 1000, null, null, null, 'internalwinner', 0, null);
-            
+            self::$LOG -> debug(" ---- In CTournamentManager in createTournament(db) - it went well up to here 2 ");
             return $t;
 //        }
     }
@@ -216,6 +217,7 @@ EOD;
         
         // Get the tablenames
         $tTournament       = DBT_Tournament;
+        $tMatch            = DBT_Match;
 
         $query = <<< EOD
             SELECT
@@ -223,9 +225,12 @@ EOD;
                 placeTournament AS place, 
                 activeTournament AS active,
                 dateFromTournament AS dateFrom,
-                dateTomTournament AS dateTom
-            FROM {$tTournament}
+                dateTomTournament AS dateTom,
+                MAX(M.roundMatch) as playedRounds
+            FROM {$tTournament} LEFT OUTER JOIN
+                {$tMatch} AS M ON M.tRefMatch_idTournament = idTournament 
             {$byUserSQL}
+            GROUP BY idTournament
             ORDER BY active DESC, dateFrom DESC
             LIMIT 20;
 EOD;
@@ -235,7 +240,7 @@ EOD;
         $tournamentViewList = array();
          
         while($row = $res->fetch_object()) {
-            $tournamentViewList[] = new view_CTournamentView($row->id, $row->place, $row->active, $row->dateFrom, $row->dateTom);
+            $tournamentViewList[] = new view_CTournamentView($row->id, $row->place, $row->active, $row->dateFrom, $row->dateTom, $row->playedRounds);
         }
         $res->close();
         if (empty($tournamentViewList)) {
@@ -262,6 +267,7 @@ EOD;
         
         // Get the tablenames
         $tTournament       = DBT_Tournament;
+        $tMatch            = DBT_Match;
 
         $query = <<< EOD
             SELECT
@@ -277,9 +283,12 @@ EOD;
                 dateTomTournament AS dateTom,
                 tieBreakersTournament AS tieBreakers,
                 useProxyTournament AS useProxy,
-                jsonScoreProxyTournament as scoreFilter
-            FROM {$tTournament}
+                jsonScoreProxyTournament as scoreFilter,
+                MAX(M.roundMatch) as playedRounds
+            FROM {$tTournament} LEFT OUTER JOIN
+                {$tMatch} AS M ON M.tRefMatch_idTournament = idTournament 
             {$byUserHtml}
+            GROUP BY idTournament
             ORDER BY active DESC, dateFrom DESC
             LIMIT 20;
 EOD;
@@ -311,6 +320,7 @@ EOD;
              $t->setCreationDate(CDate::getInstanceFromMysqlDatetime($row->creationDate));
              $t->setTournamentDateFrom(CDate::getInstanceFromMysqlDatetime($row->dateFrom));
              $t->setTournamentDateTom(CDate::getInstanceFromMysqlDatetime($row->dateTom));
+             $t->setPlayedNrOfRounds($row->playedRounds);
              self::$LOG -> debug(" **** In uuu() **** ");
              $returnArray[] = $t;
          }
@@ -336,7 +346,7 @@ self::$LOG -> debug(" **** In deewwwwrr() **** ");
         self::$LOG -> debug("dfdffdfdfd");
         $tempTournament = $this->getTournament($theDatabase, $theTournamentId);
         self::$LOG -> debug("yuyui");
-        $participants = $tempTournament->getParticipantsSortedByScore($theDatabase);
+        $participants = $tempTournament->getParticipantsSortedByScore($theDatabase, 0, true);
         $html = "";
         $i = 1;
         self::$LOG -> debug("ih tmlmojen");

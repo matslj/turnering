@@ -23,6 +23,11 @@ class CScoreProxy {
         $this->scorePlayerTwo = $scorePlayerTwo;
     }
     
+    public function getCopy() {
+        $tempObject = new CScoreProxy($this->id, $this->diffLow, $this->diffHigh, $this->scorePlayerOne, $this->scorePlayerTwo);
+        return $tempObject;
+    }
+    
     public function getId() {
         return $this->id;
     }

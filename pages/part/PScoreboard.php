@@ -48,8 +48,9 @@ $imageLink = WS_IMAGES;
 //
 // Create HTML for page
 //
-
-$htmlMain = <<<EOD
+$htmlMain = "";
+if (!empty($scoreBoardHtmlTable)) {
+$htmlMain .= <<<EOD
     <table id='scoreboardPresentation'>
         <tr>
             <td id='firstColScore'></td>
@@ -60,6 +61,7 @@ $htmlMain = <<<EOD
         </tr>
     </table>
 EOD;
+}
                 
 // $log->debug($htmlMain);
 

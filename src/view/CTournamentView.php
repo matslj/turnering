@@ -11,13 +11,15 @@ class view_CTournamentView {
     private $active;
     private $tournamentDateFrom; // class CDate
     private $tournamentDateTom;  // class CDate
+    private $playedNrOfRounds;
     
-    function __construct($id, $place, $theActive, $tournamentDateFrom, $tournamentDateTom) {
+    function __construct($id, $place, $theActive, $tournamentDateFrom, $tournamentDateTom, $playedNrOfRounds) {
         $this->id = $id;
         $this->place = $place;
         $this->active = $theActive != 0 ? true : false;
         $this->tournamentDateFrom = CDate::getInstanceFromMysqlDatetime($tournamentDateFrom);
         $this->tournamentDateTom = CDate::getInstanceFromMysqlDatetime($tournamentDateTom);
+        $this->playedNrOfRounds = $playedNrOfRounds;
     }
     
     public function getId() {
@@ -60,6 +62,14 @@ class view_CTournamentView {
         $this->tournamentDateTom = $tournamentDateTom;
     }
     
+    public function getPlayedNrOfRounds() {
+        return $this->playedNrOfRounds;
+    }
+
+    public function setPlayedNrOfRounds($playedNrOfRounds) {
+        $this->playedNrOfRounds = $playedNrOfRounds;
+    }
+    
     public function toJson() {
         
         return array(
@@ -68,6 +78,7 @@ class view_CTournamentView {
             "active" => $this->getActive(),
             "fromDate" => $this->getTournamentDateFrom()->getDate(),
             "tomDate" => $this->getTournamentDateTom()->getDate(),
+            "playedRounds" => $this->getPlayedNrOfRounds(),
         );
     }
 

@@ -18,7 +18,7 @@ define('WS_TITLE', 	    'DMF-turnering');		                  // The title of thi
 define('WS_SUB_TITLE',  'i Warhammer fantasy battle');
 define('WS_STYLESHEET', 'style/plain/stylesheet_liquid.css');	  // Default stylesheet of the site.
 define('WS_FAVICON', 	'img/favicon.ico');                       // Small icon to display in browser
-define('WS_FOOTER', 	'&copy; 2013 by ML - version 0.1');       // Footer at the end of the page.
+define('WS_FOOTER', 	'&copy; 2013 by Mats Ljungquist - version 0.7');       // Footer at the end of the page.
 define('WS_VALIDATORS', FALSE);	                                  // Show links to w3c validators tools.
 define('WS_TIMER',   	TRUE);                                    // Time generation of a page and display in footer.
 define('WS_CHARSET', 	'utf-8');                                 // Use this charset

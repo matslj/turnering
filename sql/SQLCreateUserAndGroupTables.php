@@ -383,6 +383,7 @@ DROP PROCEDURE IF EXISTS {$spEditSelectedValuesTournament};
 CREATE PROCEDURE {$spEditSelectedValuesTournament}
 (
     IN aTournamentId INT,
+    IN aPlace VARCHAR(200),
     IN aNrOfRounds INT,
     IN aByeScore INT,
     IN aDateFrom DATETIME,
@@ -394,6 +395,7 @@ CREATE PROCEDURE {$spEditSelectedValuesTournament}
 BEGIN
     UPDATE {$tTournament} SET
             roundsTournament   = aNrOfRounds,
+            placeTournament    = aPlace,
             byeScoreTournament = aByeScore,
             dateFromTournament = aDateFrom,
             dateTomTournament  = aDateTom,
@@ -700,6 +702,20 @@ CREATE PROCEDURE {$spDeleteUser}
         IN anIdUser INT
 )
 BEGIN
+    DECLARE tournamentCreator INT;
+    SET tournamentCreator = 0;
+    -- Only delete the user if he/she is not a creator of any tournament or has any match results.
+    SELECT creatorTournament_idUser INTO tournamentCreator FROM {$tTournament}
+        WHERE creatorTournament_idUser = anIdUser;
+    SELECT playerOneMatch_idUser INTO tournamentCreator FROM {$tMatch}
+        WHERE
+            playerOneMatch_idUser = anIdUser;
+    SELECT playerTwoMatch_idUser INTO tournamentCreator FROM {$tMatch}
+        WHERE
+            playerTwoMatch_idUser = anIdUser; 
+
+    IF tournamentCreator != anIdUser THEN
+    BEGIN
         DELETE FROM {$tMatch}
         WHERE
             playerOneMatch_idUser = anIdUser OR
@@ -722,6 +738,13 @@ BEGIN
         WHERE
             idUser = anIdUser
         LIMIT 1;
+        
+        SELECT * FROM {$tUser}
+        WHERE
+            idUser = anIdUser
+        LIMIT 1;
+    END;
+    END IF;
 END;
       
 --
@@ -959,7 +982,7 @@ END;
 -- Add default user(s)
 --
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
-VALUES ('admin', 'admin@noreply.se', 'Mr Admin', NOW(), md5('admin'), '{$imageLink}woman_60x60.png', '', FALSE);
+VALUES ('admin', 'admin@noreply.se', 'Mr Admin', NOW(), md5('hemligt'), '{$imageLink}woman_60x60.png', '', FALSE);
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
 VALUES ('Hobbylim', 'mats@noreply.se', 'Mats Ljungquist', NOW(), md5('Hobbylim'), '{$imageLink}man_60x60.png', 'Vampire Counts', TRUE);
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
@@ -1034,16 +1057,76 @@ INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
     VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'MR. GRUMPY'), 'usr');
 INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
     VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'Zilan'), 'usr');       
-        
-SET @aTournamentId = 0;
-CALL {$spCreateTournament}(1, 'Here', 3, 'Swiss', true, 1000, NOW(), NOW(), "internalwinner", false, null, @aTournamentId);
-SELECT @aTournamentId AS id;
+
+INSERT INTO {$tTournament} (`idTournament`, `creatorTournament_idUser`, `placeTournament`, `roundsTournament`, `typeTournament`, `activeTournament`, `byeScoreTournament`, `createdTournament`, `dateFromTournament`, `dateTomTournament`, `tieBreakersTournament`, `useProxyTournament`, `jsonScoreProxyTournament`) VALUES
+(1, 1, 'DMF', 3, 'Swiss', 1, 1000, '2013-10-20 00:07:38', '2013-10-20 09:00:01', '2013-10-20 21:00:01', 'internalwinner,orgscore,mostwon', 1, null);
 
 SET @aTournamentId = 0;
 CALL {$spCreateTournament}(8, 'Here', 3, 'Swiss', true, 1000, NOW() + interval 30 day, NOW() + interval 30 day, "internalwinner", false, null, @aTournamentId);
 SELECT @aTournamentId AS id;
 
+INSERT INTO {$tMatch} (`idMatch`, `playerOneMatch_idUser`, `playerTwoMatch_idUser`, `tRefMatch_idTournament`, `playerOneScoreMatch`, `playerTwoScoreMatch`, `roundMatch`, `lastUpdateMatch`) VALUES
+(2, 10, 11, 2, 2205, 605, 1, '2014-02-15 11:33:35'),
+(3, 13, 12, 2, 759, 659, 1, '2014-02-15 11:33:35'),
+(4, 4, 14, 2, 2125, 560, 1, '2014-02-15 11:33:35'),
+(30, 8, 6, 2, 1795, 550, 1, '2013-10-20 11:33:35'),
+(31, 15, 2, 2, 488, 809, 1, '2013-10-20 11:33:35');
+
+INSERT INTO {$tUserTournament} (`UserTournament_idUser`, `UserTournament_idTournament`, `joinDateUserTournament`) VALUES
+(2, 2, '2014-02-15 11:33:35'),
+(4, 2, '2014-02-15 11:33:35'),
+(6, 2, '2014-02-15 11:33:35'),
+(8, 2, '2014-02-15 11:33:35'),
+(10, 2, '2014-02-15 11:33:35'),
+(11, 2, '2014-02-15 11:33:35'),
+(12, 2, '2014-02-15 11:33:35'),
+(13, 2, '2014-02-15 11:33:35'),
+(14, 2, '2014-02-15 11:33:35'),
+(15, 2, '2014-02-15 11:33:35');
+
+INSERT INTO {$tMatch} (`idMatch`, `playerOneMatch_idUser`, `playerTwoMatch_idUser`, `tRefMatch_idTournament`, `playerOneScoreMatch`, `playerTwoScoreMatch`, `roundMatch`, `lastUpdateMatch`) VALUES
+(10, 10, 11, 1, 2205, 605, 1, '2013-10-20 11:33:35'),
+(9, 13, 12, 1, 759, 659, 1, '2013-10-20 11:33:35'),
+(8, 4, 14, 1, 2125, 560, 1, '2013-10-20 11:33:35'),
+(7, 8, 6, 1, 1795, 550, 1, '2013-10-20 11:33:35'),
+(6, 15, 2, 1, 488, 809, 1, '2013-10-20 11:33:35'),
+(11, 6, 14, 1, 565, 903, 2, '2013-10-20 15:48:20'),
+(12, 11, 12, 1, 494, 1027, 2, '2013-10-20 15:48:20'),
+(13, 15, 13, 1, 560, 1145, 2, '2013-10-20 15:48:20'),
+(14, 2, 8, 1, 815, 1484, 2, '2013-10-20 15:48:20'),
+(15, 4, 10, 1, 2275, 120, 2, '2013-10-20 15:48:20'),
+(28, 8, 4, 1, 321, 1659, 3, '2013-10-20 19:30:31'),
+(27, 2, 13, 1, 2225, 678, 3, '2013-10-20 19:30:31'),
+(26, 14, 12, 1, 222, 2150, 3, '2013-10-20 19:30:31'),
+(25, 6, 15, 1, 2046, 287, 3, '2013-10-20 19:30:31');
+
+INSERT INTO {$tUserTournament} (`UserTournament_idUser`, `UserTournament_idTournament`, `joinDateUserTournament`) VALUES
+(2, 1, '2013-10-20 11:33:35'),
+(4, 1, '2013-10-20 11:33:35'),
+(6, 1, '2013-10-20 11:33:35'),
+(8, 1, '2013-10-20 11:33:35'),
+(10, 1, '2013-10-20 11:33:35'),
+(11, 1, '2013-10-20 11:33:35'),
+(12, 1, '2013-10-20 11:33:35'),
+(13, 1, '2013-10-20 11:33:35'),
+(14, 1, '2013-10-20 11:33:35'),
+(15, 1, '2013-10-20 11:33:35');
+
 EOD;
 
+//--SET @aTournamentId = 0;
+//--CALL {$spCreateTournament}(1, 'Here', 3, 'Swiss', true, 1000, NOW(), NOW(), "internalwinner", false, null, @aTournamentId);
+//--SELECT @aTournamentId AS id;
+//
+//UserTournament_idUser INT NOT NULL,
+//  UserTournament_idTournament INT NOT NULL,
+//
+//  FOREIGN KEY (UserTournament_idUser) REFERENCES {$tUser}(idUser),
+//  FOREIGN KEY (UserTournament_idTournament) REFERENCES {$tTournament}(idTournament),
+//
+//  PRIMARY KEY (UserTournament_idUser, UserTournament_idTournament),
+//
+//  -- Attributes
+//  joinDateUserTournament DATETIME NOT NULL
 
 ?>

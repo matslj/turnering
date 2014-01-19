@@ -51,9 +51,13 @@ $imageLink = WS_IMAGES;
 // Create HTML for page
 //
 $htmlMain = <<<EOD
-    <h1>Aktuellt turneringsresultat<span style="float: right;"><a href="{$siteLink}?p=pdfscoreboard"><img src="{$imageLink}/PDF-icon.png"></a></span></h1>
+    <h1>Aktuellt turneringsresultat<span style="float: right;"><a href="{$siteLink}?p=pdfscoreboard&st={$selectedTournament}"><img src="{$imageLink}/PDF-icon.png"></a></span></h1>
     <div class="clear"></div>
     <div class='section'>
+EOD;
+    
+if (!empty($scoreBoardHtmlTable)) {
+    $htmlMain .= <<<EOD
         <table id='scoreboardPresentation'>
             <tr>
                 <td id='firstColScore'></td>
@@ -63,8 +67,12 @@ $htmlMain = <<<EOD
                 <td id='thirdColScore'></td>
             </tr>
         </table>
-    </div>
 EOD;
+} else {
+    $htmlMain .= "<p>Inga deltagare = inget resultat.</p>";
+}
+
+$htmlMain .= "</div>"; // end of div - section
 
 $htmlRight = "";
 

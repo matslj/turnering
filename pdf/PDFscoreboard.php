@@ -25,7 +25,7 @@ class ScorePDF extends TCPDF {
 		// Set font
 		$this->SetFont('helvetica', 'B', 20);
 		// Title
-		$this->Cell(0, 15, 'Resultatlista', 0, false, 'C', 0, '', 0, false, 'M', 'M');
+		$this->Cell(0, 15, 'Resultatlista - Warhammer fantasy battle', 0, false, 'C', 0, '', 0, false, 'M', 'M');
         $this->Ln();
         $this->SetFont('helvetica', 'B', 10);
         $this->Cell(0, 15, $this->headerTitle, 0, false, 'C', 0, '', 0, false, 'M', 'M');
@@ -93,11 +93,16 @@ class ScorePDF extends TCPDF {
 
 }
 
+// ** Start get request parameters
+$pc = CPageController::getInstance();
+$selectedTournament = $pc->GETisSetOrSetDefault('st', 0);
+CPageController::IsNumericOrDie($selectedTournament);
+
 // ** Start loading tournament data
 $db 	= new CDatabaseController();
 $mysqli = $db->Connect();
 $tempManager = new CTournamentManager();
-$tournament = $tempManager->getTournament($db);
+$tournament = $tempManager->getTournament($db, $selectedTournament);
 $participants = $tournament->getParticipantsSortedByScore($db);
 $data = array(); // This is the data which is to be sent to the pdf table
 $i = 1;
@@ -118,7 +123,7 @@ $mysqli->close();
 
 // create new PDF document
 $pdf = new ScorePDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-$pdf->setHeaderTitle("(turneringsdatum: " . $tournament->getTournamentDateFrom()->getDate() . " - " . $tournament->getTournamentDateTom()->getDate() . ")");
+$pdf->setHeaderTitle("(turneringsdatum: " . $tournament->getTournamentDateFrom()->getDate() . " - " . $tournament->getTournamentDateTom()->getDate() . ", " . $tournament->getPlace() . ")");
 
 // set document information
 $pdf->SetCreator(PDF_CREATOR);
