@@ -109,6 +109,7 @@ switch ($gPage) {
     case 'tpast':    require_once(TP_PAGESPATH . 'page/PPlayedTournament.php'); break;
     case 'tupc':    require_once(TP_PAGESPATH . 'page/PUpcomingTournament.php'); break;
     case 'tupcp':    require_once(TP_PAGESPATH . 'page/PUpcomingTournamentProcess.php'); break;
+    case 'tupap':    require_once(TP_PAGESPATH . 'page/PAdjustParticipationProcess.php'); break;
     case 'sbd':    require_once(TP_PAGESPATH . 'part/PScoreboard.php'); break;
     case 'spl':    require_once(TP_PAGESPATH . 'part/PParticipantList.php'); break;
     

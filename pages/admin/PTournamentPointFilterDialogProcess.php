@@ -23,7 +23,6 @@ $intFilter = new CInterceptionFilter();
 
 $intFilter->FrontControllerIsVisitedOrDie();
 $intFilter->UserIsSignedInOrRecirectToSignIn();
-$intFilter->UserIsMemberOfGroupAdminOrDie();
 
 // -------------------------------------------------------------------------------------------
 //
@@ -87,24 +86,31 @@ if ($scoresDecoded != null && is_array($scoresDecoded)) {
         $db = new CDatabaseController();
         $mysqli = $db->Connect();
         
-        // escape special characters
-        $scores = $mysqli->real_escape_string($scores);
-
-        // Get db-function name
-        $spSetJsonScoreProxy = DBSP_SetJsonScoreProxyTournament;
-
-        $query = "CALL {$spSetJsonScoreProxy}({$tournamentId}, '{$scores}');";
-        $res = $db->MultiQuery($query);
-
-        $nrOfStatements = $db->RetrieveAndIgnoreResultsFromMultiQuery();
-
-        if($nrOfStatements != 1) {
-            // Delete not OK
-            $log -> debug("ERROR: Update av jsondata på turneringsId '" . $tournamentId . "' gick inte att genomföra");
-            $status = "error";
-            $message = "Fel: Misslyckades med uppdatering";
-        }
+        if (CTournamentManager::mayEditTournament($db, $tournamentId)) {
         
+            // escape special characters
+            $scores = $mysqli->real_escape_string($scores);
+
+            // Get db-function name
+            $spSetJsonScoreProxy = DBSP_SetJsonScoreProxyTournament;
+
+            $query = "CALL {$spSetJsonScoreProxy}({$tournamentId}, '{$scores}');";
+            $res = $db->MultiQuery($query);
+
+            $nrOfStatements = $db->RetrieveAndIgnoreResultsFromMultiQuery();
+
+            if($nrOfStatements != 1) {
+                // Delete not OK
+                $log -> debug("ERROR: Update av jsondata på turneringsId '" . $tournamentId . "' gick inte att genomföra");
+                $status = "error";
+                $message = "Fel: Misslyckades med uppdatering";
+            }
+        } else {
+            // Delete not OK
+            $log -> debug("ERROR: otillåten access, användaren har inte rättighet att ändra turnering med id: '" . $tournamentId . "'");
+            $status = "error";
+            $message = "Fel: otillåten access";
+        }
         $mysqli->close();
     } else {
         $status = "error";

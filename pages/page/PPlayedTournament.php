@@ -207,6 +207,7 @@ $matchupHtml .= "</div>";
 // --
 $htmlMain .= <<< EOD
 <h1>Warhammer, {$tournament->getTournamentDateFrom()->getDate()}</h1>
+    {$htmlHelp}
 <div id="turneringsInfo">
             <table>
                 <tr>

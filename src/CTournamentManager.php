@@ -52,6 +52,37 @@ class CTournamentManager {
         $aTournament->createOrRecreateRound($theDatabase, $theRound);
     }
     
+    public static function mayEditTournament($theDatabase, $tournamentId) {
+        
+        $uo = CUserData::getInstance();
+        $canEdit = $uo->isAdmin();
+        
+        if (!$canEdit) {
+
+            // Get the tablenames
+            $tTournament       = DBT_Tournament;
+
+            $query = <<< EOD
+                SELECT
+                    creatorTournament_idUser AS creator
+                FROM {$tTournament}
+                WHERE idTournament = {$tournamentId}
+                LIMIT 1;
+EOD;
+
+            $res = $theDatabase->Query($query);
+            $row = $res->fetch_object();
+
+            if (!empty($row)) {
+                $canEdit = ($uo->getId() == $row->creator);
+            }
+
+            $res->close();
+        }
+        
+        return $canEdit;
+    }
+    
     public function getActiveTournament($theDatabase) {
 
         $uo = CUserData::getInstance();
@@ -176,7 +207,7 @@ EOD;
             $uo = CUserData::getInstance();
             $userId = $uo -> getId();
             $spCreateTournament = DBSP_CreateTournament;
-            $query = "CALL {$spCreateTournament}({$userId}, '', 3, 'Swiss', true, 1000, NOW(), NOW(), 'internalwinner', false, null, @aTournamentId);";
+            $query = "CALL {$spCreateTournament}({$userId}, '', 3, 'Swiss', false, 1000, NOW(), NOW(), 'internalwinner', false, null, @aTournamentId);";
             $query .= "SELECT @aTournamentId AS id;";
 
             // Perform the query
@@ -193,7 +224,7 @@ EOD;
             // Close the result set
             $results[1]->close();
             self::$LOG -> debug(" ---- In CTournamentManager in createTournament(db) - it went well up to here ");
-            $t = CTournament::getInstanceByParameters($tId, $uo, "", 3, "Swiss", 1, 1000, null, null, null, 'internalwinner', 0, null);
+            $t = CTournament::getInstanceByParameters($tId, $uo, "", 3, "Swiss", 0, 1000, null, null, null, 'internalwinner', 0, null);
             self::$LOG -> debug(" ---- In CTournamentManager in createTournament(db) - it went well up to here 2 ");
             return $t;
 //        }
@@ -201,7 +232,7 @@ EOD;
     
     public function getEmptyTournament() {
         $uo = CUserData::getInstance();
-        $t = CTournament::getInstanceByParameters(-1, $uo, "", 3, "Swiss", 1, 1000, null, null, null, 'internalwinner', 0, null);
+        $t = CTournament::getInstanceByParameters(-1, $uo, "", 3, "Swiss", 0, 1000, null, null, null, 'internalwinner', 0, null);
         return $t;
     }
     

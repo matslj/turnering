@@ -53,29 +53,63 @@ $htmlHead = <<<EOD
         .konfLabel {
             font-weight: bold;
         }
+        #aptable {
+            margin: 0 auto;
+        }
+        #aptable th, #aptable td {
+            background-color: transparent;
+            color: #000;
+            font-size: small;
+        }
     </style>
 EOD;
+    
+// -------------------------------------------------------------------------------------------
+//
+// Create a new database object, connect to the database.
+//
+$db 	= new CDatabaseController();
+$mysqli = $db->Connect();
+
+$canEdit = CTournamentManager::mayEditTournament($db, $selectedTournament);
+$canEditText = $canEdit ? "true" : "false";
     
 $javaScript = <<<EOD
 (function($){
     $(document).ready(function() {
         tournament.participation.init("{$action}", {$selectedTournament});
-            
-        $("#dialog").dialog({
-            autoOpen: false,
-            width: 400,
-            modal: true,
-            buttons: null,
-            open: function(event) {
-                $(this).load("{$siteLink}?p=spl&st={$selectedTournament}");
-            }
-        });
         
-        // Bind link to dialog open
-        $("#pLink").click(function(event) {
-            $("#dialog").dialog("open");
-            event.preventDefault();
-        });
+        if ({$canEditText}) {
+            $("#dialog").dialog({
+                autoOpen: false,
+                width: 250,
+                modal: true,
+                buttons: [
+                    {
+                        text: "Ändra",
+                        click: function() {
+                            $("#pForm").submit();
+                            $( element ).dialog( "close" );
+                        }
+                    },
+                    {
+                        text: "Avbryt",
+                        click: function() {
+                            $(this).dialog("close");
+                        }
+                    }
+                ],
+                open: function(event) {
+                    $(this).load("{$siteLink}?p=spl&st={$selectedTournament}");
+                }
+            });
+
+            // Bind link to dialog open
+            $("#pLink").click(function(event) {
+                $("#dialog").dialog("open");
+                event.preventDefault();
+            });
+        }
     });
 })(jQuery);
 EOD;
@@ -97,13 +131,6 @@ $pageId = 0;
 // Take care of _GET variables. Store them in a variable (if they are set).
 // Then prepare the ORDER BY SQL-statement, but only if the _GET variables has a value.
 //
-
-// -------------------------------------------------------------------------------------------
-//
-// Create a new database object, connect to the database.
-//
-$db 	= new CDatabaseController();
-$mysqli = $db->Connect();
 
 $tManager = new CTournamentManager();
 
@@ -197,8 +224,13 @@ $imageLink = WS_IMAGES;
 // --
 $helpContent = <<<EOD
 <p>
-    Här visas detaljinformation för vald turnering. Bara de rundor som faktiskt
-    påbörjades visas i fliksystemet nedan.
+    Här visas detaljinformation för vald turnering. Här kan man (om man är inloggad)
+    gå med i/lämna den valda turneringen. Om man är skapare av turneringen så kan man
+    även lägga till/ta bort andra deltagare från turneringen.
+</p>
+<p>
+    Man kan ändra inledningstexten till turneringen genom att klicka på titelraden
+    (den som börjar med 'Warhammer, 20...').
 </p>
 EOD;
 
@@ -261,6 +293,7 @@ if ($uo -> isAuthenticated()) {
 }
 $htmlLoginJoinLeave .= "</div>";
 
+$editParticipantListLink = $canEdit ? " <a id='pLink' href='#'>Fler/Färre</a>" : "";
 
 // -----------------------------------------------------------------------------
 // -- The main html content
@@ -314,7 +347,7 @@ $htmlMain .= <<< EOD
 {$htmlLoginJoinLeave}
 <div id="deltagare">
     <div>
-        <h3>Deltagare (so far) <a id="pLink" href="#">Fler/Färre</a></h3>
+        <h3>Deltagare (so far){$editParticipantListLink}</h3>
         {$participantListHtml}
         <p id="antalDeltagare">Antal: {$numberOfParticipants}</p>
     </div>

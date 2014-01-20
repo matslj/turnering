@@ -46,6 +46,23 @@ $pageName = basename(__FILE__);
 $needjQuery = TRUE;
 $htmlHead = <<< EOD
 <style>
+    fieldset {
+        border: 1px solid #865E29;
+        background-color: #565656;
+    }
+    legend {
+        border: 1px solid #865E29;
+        background-color: #565656;
+        font-size: 14px;
+        font-weight: bold;
+        color: #FFE16C;
+        padding: 3px 6px 3px 6px;
+    }
+    .noTournament {
+        height: 40px;
+        width: 200px;
+        color: red;
+    }
 </style>
 EOD;
 
@@ -130,23 +147,23 @@ EOD;
 }
 
 if (empty($tournamentsHtml)) {
-    $tournamentsHtml = "<div style='height: 100px; width: 100px'>Inga spelade turneringar</div>";
+    $tournamentsHtml = "<div class='noTournament'>Inga spelade turneringar</div>";
 }
 
 if (empty($upcomingTournamentsHtml)) {
-    $upcomingTournamentsHtml = "<div style='height: 200px; width: 200px'>Inga kommande turneringar</div>";
+    $upcomingTournamentsHtml = "<div class='noTournament'>Inga kommande turneringar</div>";
 }
 
 
 $htmlRight .= <<< EOD
-<div id="nyaTurneringar">
-    Kommande
+<fieldset>
+    <legend>Turneringar - kommande</legend>
     {$upcomingTournamentsHtml}
-</div>
-<div id="gamlaTurneringar">
-    Spelade
+</fieldset>
+<fieldset style='margin-top: 30px;'>
+    <legend>Turneringar - spelade</legend>
     {$tournamentsHtml}
-</div>
+</fieldset>
 EOD;
 
 // -------------------------------------------------------------------------------------------

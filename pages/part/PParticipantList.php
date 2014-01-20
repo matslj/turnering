@@ -25,6 +25,9 @@ $selectedTournament = $pc->GETisSetOrSetDefault('st', 0);
 
 CPageController::IsNumericOrDie($selectedTournament);
 
+$action = "?p=tupap&st={$selectedTournament}";
+$redirect = "?p=tupc&st={$selectedTournament}";
+
 // -------------------------------------------------------------------------------------------
 //
 // Get content of file archive from database
@@ -52,13 +55,14 @@ $result = Array();
 
 // Perform the query and manage results
 $result = $db->Query($query);
-$participantListHtml .= "<form id='pForm' action='{$action}' method='POST'><table id='aptable'><tr><th>&nbsp;</th><th>deltar</th></tr>";
+$participantListHtml .= "<form id='pForm' action='{$action}' method='POST'><input type='hidden' name='redirect' value='{$redirect}'>";
+$participantListHtml .= "<table id='aptable'><tr><th>&nbsp;</th><th>deltar</th></tr>";
 while($row = $result->fetch_object()) {
     $checked = $row->part != null ? " CHECKED" : "";
     $numberOfParticipants++;
     $participantListHtml .= "<tr id='apUser_{$row->idUser}'>"; // This is matched in the tournament.paticipation.js
     $participantListHtml .= "<td>{$row->accountUser}</td>";
-    $participantListHtml .= "<td><input id='part_{$row->idUser}' type='checkbox' name='part_{$row->idUser}' {$checked}></td>";
+    $participantListHtml .= "<td style='text-align: center;'><input id='part_{$row->idUser}' type='checkbox' name='parts[]' {$checked} value='{$row->idUser}'></td>";
     $participantListHtml .= "</tr>";
 }
 $participantListHtml .= "</table></form>";
