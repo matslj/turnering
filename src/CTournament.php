@@ -287,8 +287,7 @@ EOD;
     }
     
     public function isUpcoming() {
-        $currentTime = time();
-        return ($currentTime <= $this->tournamentDateFrom -> getTimestamp());
+        return ($this->tournamentDateFrom -> compareWithoutTime(time()) >= 0);
     }
     public function isDeletable() {
         return $this->getPlayedNrOfRounds() <= 1;

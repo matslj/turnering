@@ -111,8 +111,9 @@ $htmlHead = <<<EOD
         #minaTurneringar table td {
             background-color: #FFF;
             padding: 2px 4px 2px 4px;
+            color: #000;
         }
-        #minaTurneringar table td.aktiv {
+        #minaTurneringar table td.markedRow {
             background-color: #C2C2C2;
         }
         #minaTurneringar table th {
@@ -124,6 +125,7 @@ $htmlHead = <<<EOD
         }
         #minaTurneringar table th:first-child {
             background: #808080 url({$imageLink}/box/AUp2CjA-0.png) no-repeat top left;
+            padding-left: 8px;
         }
         #minaTurneringar table th:last-child {
             background: #808080 url({$imageLink}/box/U55D5VK-1.png) no-repeat top right;
@@ -306,9 +308,9 @@ $javaScript = <<<EOD
     }
 
     $(document).ready(function() {
-        tournament.config.init(disableIfInactive, '{$imageLink}');
+        tournament.config.init(disableIfInactive, '{$imageLink}', {$selectedTournament});
         
-        disableIfInactive({$tempJsTournamentActive});
+        // disableIfInactive({$tempJsTournamentActive});
         
         $(".scoreFilterTable").contextmenu({
             delegate: ".dbfHTarget",
@@ -427,17 +429,24 @@ $redirect = "?p=" . $pc->computePage();
 $tournamentsHtml = "";
 $activeTournamentHtml = "";
 foreach ($tournaments as $tempT) {
-    $activeClass = "";
-    if(!$tempT->getActive()) {
-        $activeClass = " class='aktiv'";
+    $activeMarker = "";
+    $markedRow = "";
+    if($tempT->getActive()) {
+        $activeMarker = "*";
+    }
+    if($tempT->getId() == $selectedTournament) {
+        $markedRow = " class='markedRow'";
     }
     $deletable = $tempT->isDeletable() ? "<a href='?p=admin_tournamentdp&tId={$tempT->getId()}'><img style='vertical-align: bottom; border: 0;' src='{$imageLink}close_16.png' /></a>" : "&nbsp;";
     $tournamentsHtml .= <<< EOD
     <tr>
-        <td{$activeClass}>
+        <td{$markedRow} style="width:10px; text-align: right;">
+            {$activeMarker}
+        </td>
+        <td{$markedRow}>
             <a href="{$redirect}&st={$tempT->getId()}">{$tempT->getTournamentDateFrom()->getDate()} - {$tempT->getTournamentDateTom()->getDate()}</a>
         </td>
-        <td{$activeClass}>
+        <td{$markedRow}>
             {$deletable}
         </td>
     </tr>
@@ -476,7 +485,7 @@ $htmlMain .= <<< EOD
     <table>
         <thead>
         <tr>
-            <th>Skapade turneringar</th>
+            <th colspan="2">Skapade turneringar</th>
             <th>&nbsp;</th>
         </tr>
         </thead>
@@ -487,9 +496,13 @@ $htmlMain .= <<< EOD
             <tr>
                 <td></td>
                 <td></td>
+                <td></td>
             </tr>
         </tfoot>
     </table>
+    <div style="font-size: 10px; padding: 5px 0 0 5px;">
+        * främst i en rad = aktiv turnering
+    </div>
 </div>
 EOD;
         

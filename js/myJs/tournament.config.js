@@ -41,6 +41,9 @@ tournament.config = {
     sfNewFrom         : "newFrom",
     sfNewTom          : "newTom",
     
+    // Holder for tournamentId
+    tournamentId      : 0,
+    
     // Date pattern
     datePattern       : "yy-mm-dd",
     
@@ -63,7 +66,8 @@ tournament.config = {
      *     functional.
      * </ul>
      */
-    init : function (responseCallback, imagesPath) {
+    init : function (responseCallback, imagesPath, tournamentId) {
+        tournament.config.tournamentId = tournamentId;
         tournament.config.images = imagesPath;
         tournament.config.responseCallbackFunction = responseCallback;
         $(this.idDateFrom).datepicker({
@@ -167,14 +171,21 @@ tournament.config = {
         var counter = 0;
         for (var i in tournamentListJson) {
             var lActive = "";
-            if (!tournamentListJson[i].active) {
-                lActive = " class='aktiv'"
+            var mRow = "";
+            if (tournamentListJson[i].active) {
+                lActive = "*";
+            }
+            if (tournamentListJson[i].id == tournament.config.tournamentId) {
+                mRow = " class='markedRow'"
             }
             htmlOut += "<tr>";
-            htmlOut += "<td" + lActive + ">";
+            htmlOut += "<td" + mRow + " style='width:10px; text-align: right;'>";
+            htmlOut += lActive;
+            htmlOut += "</td>";
+            htmlOut += "<td" + mRow + ">";
             htmlOut += "<a href='?p=admin_tournament&st=" + tournamentListJson[i].id +"'>" + tournamentListJson[i].fromDate + " - " + tournamentListJson[i].tomDate + "</a>";
             htmlOut += "</td>";
-            htmlOut += "<td" + lActive + ">";
+            htmlOut += "<td" + mRow + ">";
             var tempRounds = parseInt(tournamentListJson[i].playedRounds, 10);
             if (!tempRounds || tempRounds <= 1) {
                 htmlOut += "<a href='?p=admin_tournamentdp&tId=" + tournamentListJson[i].id +"'><img style='vertical-align: bottom; border: 0;' src='" + tournament.config.images + "close_16.png' /></a>";
@@ -201,7 +212,7 @@ tournament.config = {
                 console.log(data.active);
                 console.log(data.tournaments);
                 tournament.config.createTable(data.tournaments);
-                tournament.config.responseCallbackFunction(data.active);
+                // tournament.config.responseCallbackFunction(data.active);
             }
         }
     },

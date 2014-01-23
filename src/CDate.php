@@ -57,6 +57,27 @@ class CDate {
     public function getMinute() {
         return $this->minute;
     }
+    
+    /**
+     * If this->date is larger than the parameter return 1.
+     * If equal, return 0.
+     * Else, return -1.
+     * 
+     * @param type $timestamp
+     * @return int
+     */
+    public function compareWithoutTime($timestamp) {
+        $tempDate = date('Y-m-d', $timestamp);
+        $tempDate_time = strtotime($tempDate);
+        $date_time = strtotime($this->date);
+        if ($date_time == $tempDate_time) {
+            return 0;
+        } else if ($date_time > $tempDate_time) {
+            return 1;
+        } else {
+            return -1;
+        }
+    }
 
 } // End of Of Class
 
