@@ -913,25 +913,30 @@ EOD;
         $html = "<div id='round{$theRound}' class='round'>";
         
         $thePanel = "";
+        $deleteSign = "";
+        $refreshSign = "";
         if ($admin && $theRound == $this->currentRound) {
-            $deleteSign = "";
             if ($theRound > 1) {
                 $dr = $theRound - 1;
                 $deleteSign = "<a href='{$siteLink}?p=matchupap&cr={$dr}&t={$this -> id}' onclick='return confirm(\"Vill du verkligen radera den här rundan?\")'><img src='{$imageLink}/close_24.png'></a>";
             }
+            $refreshSign =  <<< EOD
+                <a href='{$siteLink}?p=matchupap&cr={$theRound}&t={$this -> id}' onclick='return confirm("Vill du verkligen göra om den här rundan?")'>
+                    <img src='{$imageLink}/recycle_24.png' alt='Omskapa runda'>
+                </a>
+EOD;
+        }
  
-            $thePanel =  <<< EOD
+        $thePanel =  <<< EOD
                 <span class='panelMatchup'>
-                    <a href='{$siteLink}?p=pdfmatchup&round={$theRound}'>
+                    <a href='{$siteLink}?p=pdfmatchup&round={$theRound}&st={$this -> id}'>
                         <img src='{$imageLink}/PDF-icon.png'>
                     </a>
-                    <a href='{$siteLink}?p=matchupap&cr={$theRound}&t={$this -> id}' onclick='return confirm("Vill du verkligen göra om den här rundan?")'>
-                        <img src='{$imageLink}/recycle_24.png' alt='Skriv ut som pdf'>
-                    </a>
+                    {$refreshSign}
                     {$deleteSign}
                 </span>
 EOD;
-        }
+        
         
         if ($showTitle) {
             $html .= "<h2>Omgång {$theRound}{$thePanel}</h2>";
@@ -1012,12 +1017,17 @@ EOD;
         $byedPlayer = null;
 
         $html .= "<h2>Omgång {$theRound}</h2><table cellpadding=\"5\">";
-        
+        $rowColor = false;
         foreach ($tempRound as $value) {
             if ($value->getPlayerOne()->isEmptyInstance() || $value->getPlayerTwo()->isEmptyInstance()) {
                 $byedPlayer = $value->getPlayerOne()->isEmptyInstance() ? $value->getPlayerTwo() : $value->getPlayerOne();
             } else {
-                $html .= "<tr><td class=\"first\">{$value->getPlayerOne()->getAccount()}</td><td class=\"marker\">&nbsp;-</td><td>{$value->getPlayerTwo()->getAccount()}</td></tr>";
+                $rowColor = !$rowColor;
+                $rowColorClass = $rowColor ? " colored" : "";
+                $scoreOne = $this->useProxy ? $value->getProxyScorePlayerOne($this->id) : $value->getScorePlayerOne();
+                $scoreTwo = $this->useProxy ? $value->getProxyScorePlayerTwo($this->id) : $value->getScorePlayerTwo();
+                $html .= "<tr><td class=\"first{$rowColorClass}\">{$value->getPlayerOne()->getAccount()}</td><td class=\"marker{$rowColorClass}\">&nbsp;-</td><td class=\"{$rowColorClass}\">{$value->getPlayerTwo()->getAccount()}</td></tr>";
+                $html .= "<tr><td class=\"first{$rowColorClass}\">{$scoreOne}</td><td class=\"marker{$rowColorClass}\">&nbsp;-</td><td class=\"{$rowColorClass}\">{$scoreTwo}</td></tr>";
             }
         }
         

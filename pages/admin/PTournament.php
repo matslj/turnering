@@ -70,6 +70,7 @@ $tManager = new CTournamentManager();
 // 3) Get active tournament (each user can only have one active tournament)
 if ($createTournament == 1) {
     $tournament = $tManager->createTournament($db);
+    $selectedTournament = $tournament -> getId();
 } else if (!empty($selectedTournament)) {
     $tournament = $tManager->getTournament($db, $selectedTournament);
 }
@@ -410,6 +411,18 @@ $helpContent = <<<EOD
     </li>
 </ul>
 Man kan också välja att inte ha någon tie breaker.
+<p style="font-weight: bold;">Proxy filter</p>
+<p>
+    Med hjälp av proxy filter, så kan man översätta från en poängdifferens till ett angivet poängintervall.
+    Detta koncept förstås enklast genom att man öppnar dialogrutan för proxyfilter.
+</p>
+<p style="font-weight: bold;">Listan med dina skapade turneringar</p>
+<p>
+    Om du klickar på datumdelen i nämda lista, så får du upp turneringen i detaljfälten till höger.
+    Rött kryss = radera turnering. Det går dock bara att
+    ta bort turneringar som inte har kommit till runda två. Detta är en säkerhetsåtgärd för att
+    förhindra alltför dramatiska misstag.
+</p>
 EOD;
 
 // Provides help facility - include $htmlHelp in main content
@@ -437,7 +450,7 @@ foreach ($tournaments as $tempT) {
     if($tempT->getId() == $selectedTournament) {
         $markedRow = " class='markedRow'";
     }
-    $deletable = $tempT->isDeletable() ? "<a href='?p=admin_tournamentdp&tId={$tempT->getId()}'><img style='vertical-align: bottom; border: 0;' src='{$imageLink}close_16.png' /></a>" : "&nbsp;";
+    $deletable = $tempT->isDeletable() ? "<a href='?p=admin_tournamentdp&tId={$tempT->getId()}' onclick='return confirm(\"Vill du verkligen radera den här turneringen?\")'><img style='vertical-align: bottom; border: 0;' src='{$imageLink}close_16.png' /></a>" : "&nbsp;";
     $tournamentsHtml .= <<< EOD
     <tr>
         <td{$markedRow} style="width:10px; text-align: right;">

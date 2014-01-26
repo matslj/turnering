@@ -12,14 +12,17 @@ require_once(TP_PDFGENPATH . 'tcpdf.php');
 
 // ** Start get request parameters
 $pc = CPageController::getInstance();
+$selectedTournament = $pc->GETisSetOrSetDefault('st', 0);
+CPageController::IsNumericOrDie($selectedTournament);
 $round = $pc->GETisSetOrSetDefault('round', 0);
+CPageController::IsNumericOrDie($round);
 // ** End get request parameters
 
 // ** Start loading tournament data
 $db 	= new CDatabaseController();
 $mysqli = $db->Connect();
 $tempManager = new CTournamentManager();
-$tournament = $tempManager->getTournament($db);
+$tournament = $tempManager->getTournament($db, $selectedTournament);
 $matchupHtml = $tournament->getRoundAsHtmlForPDF($round);
 $mysqli->close();
 // ** End loading tournament data
@@ -29,6 +32,10 @@ $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',
 
 $html = <<< EOD
     <style>
+        td.colored {
+            background-color: #DADADA;
+            border: 1px solid #DADADA;
+        }
         td.marker {
             width: 20px;
         }

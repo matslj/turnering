@@ -88,6 +88,8 @@ $row = $results[2]->fetch_object();
 $pageId = $row->id;
 $timestamp = $row->timestamp;
 
+$log->debug("---- pageId: " . $pageId);
+
 $results[2]->close();
 $mysqli->close();
 

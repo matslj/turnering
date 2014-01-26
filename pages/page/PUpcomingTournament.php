@@ -117,7 +117,7 @@ $needjQuery = TRUE;
 
 // In order to create tournament specific page names (so that I can use tournament specific
 // title and content for a page) I add _T<tournamentId>
-$pageName = basename(__FILE__) . "_T" . $selectedTournament;
+$pageName = basename(__FILE__) . "OOOO" . $selectedTournament;
 
 $titleLink 	= "";
 
@@ -224,12 +224,12 @@ $imageLink = WS_IMAGES;
 // --
 $helpContent = <<<EOD
 <p>
-    Här visas detaljinformation för vald turnering. Här kan man (om man är inloggad)
+    Här visas detaljinformation för en kommande turnering. Här kan man (om man är inloggad)
     gå med i/lämna den valda turneringen. Om man är skapare av turneringen så kan man
     även lägga till/ta bort andra deltagare från turneringen.
 </p>
 <p>
-    Man kan ändra inledningstexten till turneringen genom att klicka på titelraden
+    Man kan (om man är skapare av turneringen) ändra inledningstexten till turneringen genom att klicka på titelraden
     (den som börjar med 'Warhammer, 20...').
 </p>
 EOD;

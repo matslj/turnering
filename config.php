@@ -14,7 +14,7 @@
 //
 define('WS_MELINK',     'http://localhost/dbwebb2/me/');          // Link to me pages.
 define('WS_SITELINK',   'http://localhost/turnering/');           // Link to site.
-define('WS_TITLE', 	    'DMF-turnering');		                  // The title of this site.
+define('WS_TITLE', 	    'Turnering');		                  // The title of this site.
 define('WS_SUB_TITLE',  'i Warhammer fantasy battle');
 define('WS_STYLESHEET', 'style/plain/stylesheet_liquid.css');	  // Default stylesheet of the site.
 define('WS_FAVICON', 	'img/favicon.ico');                       // Small icon to display in browser

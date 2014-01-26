@@ -132,8 +132,10 @@ EOD;
 // --
 $helpContent = <<<EOD
 <p>
-    Här visas detaljinformation för vald turnering. Bara de rundor som faktiskt
-    påbörjades visas i fliksystemet nedan.
+    Här visas detaljinformation för en turnering vars bästföredatum har passerats. 
+    Bara de rundor som faktiskt påbörjades visas i fliksystemet nedan. Dvs om bästföredatum
+    passeras utan att någon match spelats, så kommer inga flikar för rundor att visas
+    i fliksystemet.
 </p>
 EOD;
 

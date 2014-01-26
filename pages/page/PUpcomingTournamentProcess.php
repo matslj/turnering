@@ -78,6 +78,7 @@ if ($incomingDataDecoded != null) {
         $mysqli = $db->Connect();
 
         $query = "CALL {$userAction}({$dTournamentId}, {$userId});";
+        $log->debug(" --- the query: " . $query);
         $res = $db->MultiQuery($query);
 
         $nrOfStatements = $db->RetrieveAndIgnoreResultsFromMultiQuery();

@@ -10,7 +10,7 @@
 // # in the menu below means that the user has to be logged in for this item to show up.
 $menuNavBar = Array (
         'Hem'              => '?p=home',
-        '#Skapa turnering'    => '?p=admin_tournament',
+        '#Mina turneringar'    => '?p=admin_tournament',
 );
 define('MENU_NAVBAR', serialize($menuNavBar));
 

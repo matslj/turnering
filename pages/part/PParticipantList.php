@@ -10,7 +10,7 @@
 
 // $log = logging_CLogger::getInstance(__FILE__);
 
-$pc = CPageController::getInstance();
+$pc = CPageController::getInstance(FALSE);
 
 // -------------------------------------------------------------------------------------------
 //

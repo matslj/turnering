@@ -457,7 +457,7 @@ BEGIN
     SELECT COUNT(*) INTO validHits
     FROM {$tTournament} 
     WHERE {$tTournament}.idTournament = aTournamentId AND 
-        NOW() < {$tTournament}.dateFromTournament;
+        CURDATE() <= {$tTournament}.dateFromTournament;
             
     IF validHits = 1 THEN
         INSERT INTO {$tUserTournament}
@@ -1014,7 +1014,11 @@ VALUES ('Marcus', 'marcus@noreply.se', 'Marcus Altin', NOW(), md5('Marcus'), '{$
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
 VALUES ('MR. GRUMPY', 'rasmus@noreply.se', 'Rasmus Törnqvist', NOW(), md5('Rasmus'), '{$imageLink}man_60x60.png', 'High Elves', TRUE);
 INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
-VALUES ('Zilan', 'zilan@noreply.se', 'Carl', NOW(), md5('Zilan'), '{$imageLink}man_60x60.png', 'Lizardmen', TRUE);
+VALUES ('Zilan', 'zilan@noreply.se', 'Carl Lohmander', NOW(), md5('Zilan'), '{$imageLink}man_60x60.png', 'Lizardmen', TRUE);
+INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
+VALUES ('snyggejygge', 'snyggejygge@noreply.se', 'Jörgen', NOW(), md5('snyggejygge'), '{$imageLink}man_60x60.png', 'Warriors of Chaos', TRUE);
+INSERT INTO {$tUser} (accountUser, emailUser, nameUser, lastLoginUser, passwordUser, avatarUser, armyUser, activeUser)
+VALUES ('lilljonas', 'lilljonas@noreply.se', 'Jonas Svensson', NOW(), md5('lilljonas'), '{$imageLink}man_60x60.png', 'Empire', TRUE);
 
 --
 -- Add default groups
@@ -1056,7 +1060,11 @@ INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
 INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
     VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'MR. GRUMPY'), 'usr');
 INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
-    VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'Zilan'), 'usr');       
+    VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'Zilan'), 'usr');
+INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
+    VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'snyggejygge'), 'usr');
+INSERT INTO {$tGroupMember} (GroupMember_idUser, GroupMember_idGroup)
+    VALUES ((SELECT idUser FROM {$tUser} WHERE accountUser = 'lilljonas'), 'usr');  
 
 INSERT INTO {$tTournament} (`idTournament`, `creatorTournament_idUser`, `placeTournament`, `roundsTournament`, `typeTournament`, `activeTournament`, `byeScoreTournament`, `createdTournament`, `dateFromTournament`, `dateTomTournament`, `tieBreakersTournament`, `useProxyTournament`, `jsonScoreProxyTournament`) VALUES
 (1, 1, 'DMF', 3, 'Swiss', 1, 1000, '2013-10-20 00:07:38', '2013-10-20 09:00:01', '2013-10-20 21:00:01', 'internalwinner,orgscore,mostwon', 1, null);

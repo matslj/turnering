@@ -188,7 +188,7 @@ tournament.config = {
             htmlOut += "<td" + mRow + ">";
             var tempRounds = parseInt(tournamentListJson[i].playedRounds, 10);
             if (!tempRounds || tempRounds <= 1) {
-                htmlOut += "<a href='?p=admin_tournamentdp&tId=" + tournamentListJson[i].id +"'><img style='vertical-align: bottom; border: 0;' src='" + tournament.config.images + "close_16.png' /></a>";
+                htmlOut += "<a href='?p=admin_tournamentdp&tId=" + tournamentListJson[i].id +"' onclick='return confirm(\"Vill du verkligen radera den här turneringen?\")'><img style='vertical-align: bottom; border: 0;' src='" + tournament.config.images + "close_16.png' /></a>";
             } else {
                 htmlOut += "&nbsp;"
             }

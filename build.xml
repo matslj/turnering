@@ -61,4 +61,16 @@
   <target name="build.dev" depends="clean,init,concatenate,minify,replaceOldMin">
     <echo>Build-dev completed</echo>
   </target>
+  
+  <!-- 
+      Performs the build.dev target and then copies all the files necessary for
+      deployment to a deployment folder in the build directory. Also remote db
+      credentials are written to the db config file. 
+  -->
+  <target name="build.deploy" depends="clean,init">
+      <copy todir="${build.dir}/deploy/img" preservelastmodified="true">
+        <fileset dir="img"/>
+      </copy>
+    <echo>Build-deploy completed</echo>
+  </target>
 </project>
